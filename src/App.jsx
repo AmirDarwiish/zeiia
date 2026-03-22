@@ -72,9 +72,9 @@ const Section = ({ id, bg, children, style = {} }) => (
 /* ─── Hero illustration ─── */
 const HeroIllustration = ({ isRtl }) => {
   const services = isRtl ? [
-    { title: 'تطوير المواقع', desc: 'منصات ويب قابلة للتوسع ومبنية للأداء العالي' },
-    { title: 'تطبيقات الجوال', desc: 'تطبيقات iOS و Android احترافية' },
-    { title: 'أنظمة مخصصة', desc: 'برمجيات وأنظمة متكاملة لأعمالك' },
+    { title: 'تطوير المواقع والمنصات', desc: 'منصات ويب احترافية قابلة للتوسع ومُحسَّنة للأداء' },
+    { title: 'تطبيقات الجوال', desc: 'تطبيقات iOS وAndroid بأداء عالٍ وتجربة مستخدم سلسة' },
+    { title: 'أنظمة وتكاملات مخصصة', desc: 'حلول برمجية متكاملة تربط أدواتك وتُبسّط عملياتك' },
   ] : [
     { title: 'Web Development', desc: 'Scalable web platforms built for performance' },
     { title: 'Mobile Apps', desc: 'Native iOS & Android apps users love' },
@@ -250,65 +250,65 @@ const App = () => {
     },
     ar: {
       companyName: "زيا",
-      nav: { services: "خدماتنا", whyUs: "لماذا نحن", process: "آلية العمل", contact: "ابدأ مشروعك" },
+      nav: { services: "خدماتنا", whyUs: "لماذا زيا", process: "كيف نعمل", contact: "ابدأ مشروعك" },
       hero: {
-        badge: "شريكك التقني لبناء مشروعك",
+        badge: "شريكك التقني من الفكرة حتى الإطلاق",
         title: "نبني حلولاً رقمية ",
-        titleAccent: "ذكية",
-        titleEnd: " لأعمالك.",
-        sub: "نحن شريكك التقني لبناء برمجيات قابلة للتوسع، تساعد الشركات الناشئة والكبرى على النمو وتبسيط العمليات المعقدة.",
-        cta1: "استشارة مجانية",
-        cta2: "عرض الخدمات"
+        titleAccent: "تدوم",
+        titleEnd: " وتنمو.",
+        sub: "نصمم ونطور برمجيات مخصصة تساعد الشركات الناشئة والمؤسسات الراسخة على التوسع، وتحويل العمليات المعقدة إلى تجارب رقمية سلسة.",
+        cta1: "احجز استشارة مجانية",
+        cta2: "تعرف على خدماتنا"
       },
       services: {
-        tag: "خبراتنا الأساسية",
-        title: "خدمات تطوير متكاملة مصممة خصيصاً لاحتياجاتك",
+        tag: "ما نقدمه",
+        title: "خدمات تطوير برمجي متكاملة، من الفكرة إلى المنتج",
         items: [
-          { title: "تطوير المواقع", desc: "تطبيقات ويب مخصصة للمؤسسات مبنية بأحدث الإطارات البرمجية." },
-          { title: "تطبيقات الجوال", desc: "حلول أصلية وعابرة للمنصات بنظامي iOS و Android." },
-          { title: "تصميم UI/UX", desc: "تصميم يركز على المستخدم لضمان سهولة الاستخدام وزيادة التحويل." },
-          { title: "تكامل الأنظمة", desc: "ربط أنظمتك البرمجية المختلفة لضمان تدفق البيانات بسلاسة." }
+          { title: "تطوير المواقع والمنصات", desc: "نبني مواقع ومنصات ويب احترافية قابلة للتوسع، مُحسَّنة للأداء ومتوافقة مع معايير SEO." },
+          { title: "تطبيقات الجوال", desc: "تطبيقات iOS وAndroid أصيلة وعابرة للمنصات، مُصممة لتجربة مستخدم سلسة وأداء عالٍ." },
+          { title: "تصميم تجربة المستخدم", desc: "واجهات مدروسة تجمع بين الجماليات والوظيفة، لتحقيق أعلى معدلات التفاعل والتحويل." },
+          { title: "تكامل الأنظمة والـ API", desc: "نربط أنظمتك ببعضها لإلغاء الازدواجية وتدفق البيانات بدقة بين جميع أدواتك." }
         ]
       },
       whyUs: {
-        tag: "الميزة التنافسية",
-        title: "لماذا تختار العلامات الطموحة شركة زيا",
+        tag: "لماذا زيا",
+        title: "نبني علاقات طويلة الأمد، لا مجرد مشاريع",
         items: [
-          { title: "سرعة التنفيذ", desc: "منهجيات مرنة تضمن تسليم المشاريع في أوقات قياسية." },
-          { title: "حلول قابلة للتوسع", desc: "بنية تحتية مصممة لتنمو مع نمو حجم أعمالك." },
-          { title: "توجه تجاري", desc: "نحن لا نكتب كوداً فقط، بل نحل مشاكل العمل لزيادة عوائدك." },
-          { title: "دعم مخصص", desc: "صيانة مستمرة لضمان عمل برمجياتك بكفاءة على مدار الساعة." }
+          { title: "تسليم في الوقت المحدد", desc: "نعمل بمنهجية Agile مع جداول زمنية واضحة وتحديثات أسبوعية طوال مدة المشروع." },
+          { title: "بنية تحتية قابلة للتوسع", desc: "نصمم الكود ليتحمل النمو، سواء كان لديك مئة مستخدم أو مليون." },
+          { title: "شريك في النمو لا مجرد مُنفِّذ", desc: "نفهم أهدافك التجارية ونقيس نجاحنا بعائدك الفعلي، لا بعدد السطور البرمجية." },
+          { title: "دعم ما بعد الإطلاق", desc: "لا ننتهي عند التسليم، نبقى معك للصيانة والتطوير المستمر بعد الإطلاق." }
         ],
-        quote: "زيا لا تبني تطبيقات فقط؛ بل تبني مستقبل شركتك. براعتهم التقنية تفوق التوقعات."
+        quote: "زيا لا تبني تطبيقات فقط؛ تبني الأساس التقني لمستقبل شركتك."
       },
       process: {
-        tag: "آلية العمل",
-        title: "بسيطة. شفافة. فعالة.",
+        tag: "كيف نعمل",
+        title: "منهجية واضحة في أربع خطوات.",
         steps: [
-          { title: "الفهم", desc: "تحليل دقيق لمتطلباتك وأهدافك." },
-          { title: "التصميم", desc: "رسم الهوية البصرية ورحلة المستخدم." },
-          { title: "التطوير", desc: "برمجة عالية الجودة مع تحديثات مستمرة." },
-          { title: "الإطلاق", desc: "النشر والتحسين المستمر بعد الإطلاق." }
+          { title: "الاستيعاب", desc: "نغوص في تفاصيل مشروعك، سوقك، وأهدافك قبل أي سطر كود." },
+          { title: "التصميم", desc: "نرسم تجربة المستخدم والهوية البصرية مع مراجعتك في كل مرحلة." },
+          { title: "التطوير", desc: "نكتب كوداً نظيفاً وقابلاً للتطوير مع اختبار مستمر وتحديثات أسبوعية." },
+          { title: "الإطلاق والنمو", desc: "ننشر المنتج ونرافقك في مرحلة النمو بتحديثات وتحسينات دورية." }
         ]
       },
       about: {
-        tag: "عن زيا",
-        title: "رؤية للتميز الرقمي.",
-        desc: "تأسست زيا على يد مهندسين ومفكري منتجات، لسد الفجوة بين التكنولوجيا المعقدة والتجربة الإنسانية الهادفة. نحن نمكن الشركات من امتلاك تقنيات عالمية."
+        tag: "من نحن",
+        title: "فريق هندسي يفهم الأعمال قبل التقنية.",
+        desc: "زيا شركة برمجيات متخصصة في بناء منتجات رقمية للشركات الناشئة والمؤسسات. نؤمن بأن التقنية الجيدة يجب أن تخدم هدفاً تجارياً واضحاً، لذلك نبدأ دائماً بفهم عملك قبل كتابة أي كود."
       },
       contact: {
-        tag: "اتصل بنا",
-        title: "لنناقش مشروعك القادم.",
-        sub: "املأ النموذج أو تواصل معنا مباشرة. نرد عادةً خلال 12 ساعة.",
+        tag: "تواصل معنا",
+        title: "أخبرنا عن مشروعك.",
+        sub: "أرسل لنا تفاصيل مشروعك وسيتواصل معك أحد مستشارينا خلال 12 ساعة عمل.",
         formName: "الاسم الكامل",
         formEmail: "البريد الإلكتروني",
-        formMsg: "كيف يمكننا مساعدتك؟",
-        formBtn: "إرسال الرسالة",
-        success: "تم الإرسال بنجاح!",
-        successSub: "سيتواصل معك فريقنا في أقرب وقت ممكن."
+        formMsg: "صف لنا مشروعك باختصار",
+        formBtn: "أرسل طلبك",
+        success: "وصلنا طلبك!",
+        successSub: "سيتواصل معك أحد مستشارينا قريباً."
       },
       footer: {
-        desc: "هندسة الأسس الرقمية لأعظم شركات المستقبل.",
+        desc: "نبني الأساس التقني للشركات التي تريد أن تدوم.",
         rights: "© 2026 زيا. جميع الحقوق محفوظة."
       }
     }
@@ -420,7 +420,7 @@ const App = () => {
               {t.hero.badge}
             </div>
 
-            <h1 style={{ fontSize: 'clamp(36px, 5vw, 68px)', fontWeight: 900, lineHeight: 1.35, marginBottom: 28, color: '#0f172a' }}>
+            <h1 style={{ fontSize: 'clamp(36px, 5vw, 68px)', fontWeight: 900, lineHeight: 1.08, marginBottom: 28, color: '#0f172a' }}>
               {t.hero.title}<span style={{ color: '#C9A96E' }}>{t.hero.titleAccent}</span>{t.hero.titleEnd}
             </h1>
             <p style={{ fontSize: 17, color: '#475569', lineHeight: 1.75, marginBottom: 40, maxWidth: 520 }}>
@@ -442,7 +442,7 @@ const App = () => {
       <Section id="services" bg="#f8fafc">
         <div style={{ textAlign: 'center', maxWidth: 600, margin: '0 auto 64px' }}>
           <Tag>{t.services.tag}</Tag>
-          <h2 style={{ fontSize: 'clamp(24px, 3vw, 38px)', fontWeight: 800, color: '#0f172a', lineHeight: 1.35 }}>{t.services.title}</h2>
+          <h2 style={{ fontSize: 'clamp(24px, 3vw, 38px)', fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }}>{t.services.title}</h2>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 24 }}>
           {t.services.items.map((s, i) => (
@@ -491,18 +491,18 @@ const App = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {[
               {
-                problem: isRtl ? 'عندي فكرة بس مش عارف أبدأ منين' : "I have an idea but don't know where to start",
-                solution: isRtl ? 'نحول فكرتك لمنتج حقيقي من الصفر' : 'We turn your idea into a real product from scratch',
+                problem: isRtl ? 'عندي فكرة لكن لا أعرف كيف أحوّلها لمنتج' : "I have an idea but don't know where to start",
+                solution: isRtl ? 'نأخذك من الفكرة إلى منتج حقيقي جاهز للسوق' : 'We take you from idea to a market-ready product',
                 icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
               },
               {
-                problem: isRtl ? 'جربت شركات تانية وخذلتني' : 'I tried other agencies and got disappointed',
-                solution: isRtl ? 'نلتزم بالمواعيد والجودة من أول يوم' : 'We commit to deadlines and quality from day one',
+                problem: isRtl ? 'تعاملت مع شركات من قبل ولم تلتزم بالمواعيد أو الجودة' : 'I tried other agencies and got disappointed',
+                solution: isRtl ? 'نلتزم بجداول زمنية واضحة ومعايير جودة موثقة منذ اليوم الأول' : 'We commit to clear timelines and documented quality standards from day one',
                 icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               },
               {
-                problem: isRtl ? 'مش عارف التقنية المناسبة لمشروعي' : "I don't know the right tech for my project",
-                solution: isRtl ? 'نختار أنسب تقنية لاحتياجك وميزانيتك' : 'We pick the right tech for your needs and budget',
+                problem: isRtl ? 'لا أعرف أي التقنيات تناسب مشروعي وميزانيتي' : "I don't know the right tech for my project",
+                solution: isRtl ? 'نقيّم احتياجاتك ونوصي بأنسب التقنيات لهدفك وميزانيتك' : 'We evaluate your needs and recommend the best tech for your goal and budget',
                 icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
               },
             ].map((item, i) => (
