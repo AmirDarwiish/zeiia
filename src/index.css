@@ -1,9 +1,9 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --teal: #0d9488;
-  --teal-light: #ccfbf1;
-  --teal-dark: #0f766e;
+  --teal: #C9A96E;
+  --teal-light: #F5EDD9;
+  --teal-dark: #A8864F;
   --slate-900: #0f172a;
   --slate-800: #1e293b;
   --slate-700: #334155;
@@ -40,7 +40,47 @@ body {
   from { opacity: 0; transform: translateY(24px); }
   to { opacity: 1; transform: translateY(0); }
 }
+.section-animate {
+  animation: fadeUp 0.7s ease forwards;
+}
+
+@keyframes orbit {
+  from { transform: rotate(0deg) translateX(140px) rotate(0deg); }
+  to   { transform: rotate(360deg) translateX(140px) rotate(-360deg); }
+}
+
+@keyframes orbit2 {
+  from { transform: rotate(180deg) translateX(110px) rotate(-180deg); }
+  to   { transform: rotate(540deg) translateX(110px) rotate(-540deg); }
+}
 
 .animate-blob { animation: blob 7s infinite; }
 .animation-delay-2000 { animation-delay: 2s; }
 .animate-fade-up { animation: fadeUp 0.6s ease forwards; }
+.orb1 { animation: orbit 8s linear infinite; }
+.orb2 { animation: orbit2 12s linear infinite; }
+
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (max-width: 900px) {
+  .hero-grid, .why-grid, .contact-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
+  .hero-illustration { display: flex !important; }
+  .process-line { display: none; }
+}
+
+@media (max-width: 768px) {
+  .desktop-nav { display: none !important; }
+  .mobile-nav { display: flex !important; }
+}
+
+@media (min-width: 769px) {
+  .mobile-nav { display: none !important; }
+}

@@ -59,6 +59,28 @@ const Btn = ({ href, primary, children, style = {} }) => (
 );
 
 /* ─── Section wrapper ─── */
+const useReveal = () => {
+  const ref = React.useRef(null);
+  const observed = React.useRef(false);
+  React.useEffect(() => {
+    if (observed.current) return;
+    const el = ref.current;
+    if (!el) return;
+    observed.current = true;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          el.classList.add('visible');
+          obs.disconnect();
+        }
+      },
+      { threshold: 0, rootMargin: '0px 0px -60px 0px' }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return ref;
+};
 const Section = ({ id, bg, children, style = {} }) => (
   <section id={id} style={{
     padding: '64px 24px',
@@ -70,6 +92,7 @@ const Section = ({ id, bg, children, style = {} }) => (
 );
 
 /* ─── Hero illustration ─── */
+
 const HeroIllustration = ({ isRtl }) => {
   const services = isRtl ? [
     { title: 'تطوير المواقع والمنصات', desc: 'منصات ويب احترافية قابلة للتوسع ومُحسَّنة للأداء' },
@@ -111,21 +134,41 @@ const HeroIllustration = ({ isRtl }) => {
   ];
 
   return (
-    <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
-      <div style={{
-        position: 'absolute', top: -40, right: isRtl ? 'auto' : -40, left: isRtl ? -40 : 'auto',
-        width: 280, height: 280, borderRadius: '50%',
-        background: 'radial-gradient(circle, #F5EDD9 0%, transparent 70%)',
-        filter: 'blur(32px)', opacity: 0.7,
-      }} className="animate-blob" />
+  <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
 
-      <div style={{
-        position: 'relative', zIndex: 2, background: '#fff',
-        borderRadius: 24, border: '1px solid #f1f5f9',
-        boxShadow: '0 32px 80px rgba(15,23,42,.1)',
-        padding: 32, width: '100%', maxWidth: 460,
-        display: 'flex', flexDirection: 'column', gap: 16,
-      }}>
+    {/* orbital dot 1 */}
+    <div style={{ position: 'absolute', top: '50%', left: '50%', width: 0, height: 0, zIndex: 1, pointerEvents: 'none' }}>
+      <div className="orb1" style={{
+        position: 'absolute', width: 8, height: 8, borderRadius: '50%',
+        background: '#C9A96E', opacity: 0.5,
+        marginTop: -4, marginLeft: -4,
+      }} />
+    </div>
+
+    {/* orbital dot 2 */}
+    <div style={{ position: 'absolute', top: '50%', left: '50%', width: 0, height: 0, zIndex: 1, pointerEvents: 'none' }}>
+      <div className="orb2" style={{
+        position: 'absolute', width: 5, height: 5, borderRadius: '50%',
+        background: '#A8864F', opacity: 0.35,
+        marginTop: -2.5, marginLeft: -2.5,
+      }} />
+    </div>
+
+    <div style={{
+      position: 'absolute', top: -40, right: isRtl ? 'auto' : -40, left: isRtl ? -40 : 'auto',
+      width: 280, height: 280, borderRadius: '50%',
+      background: 'radial-gradient(circle, #F5EDD9 0%, transparent 70%)',
+      filter: 'blur(32px)', opacity: 0.7,
+    }} className="animate-blob" />
+
+    <div style={{
+      position: 'relative', zIndex: 2, background: '#fff',
+      borderRadius: 24, border: '1px solid #f1f5f9',
+      boxShadow: '0 32px 80px rgba(15,23,42,.1)',
+      padding: 32, width: '100%', maxWidth: 460,
+      display: 'flex', flexDirection: 'column', gap: 16,
+    }}>
+
       {/* header */}
 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
   <svg width="120" height="48" viewBox="0 0 120 48" fill="none">
@@ -182,6 +225,11 @@ const App = () => {
   const [formStatus, setFormStatus] = useState(null);
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', message: '' });
   const isRtl = lang === 'ar';
+  const revealServices = useReveal();
+const revealWhyUs   = useReveal();
+const revealProcess = useReveal();
+const revealAbout   = useReveal();
+const revealContact = useReveal();
 
   const translations = {
     en: {
@@ -437,324 +485,329 @@ const App = () => {
           </div>
         </div>
       </section>
-
-      {/* ── SERVICES ── */}
-      <Section id="services" bg="#f8fafc">
-        <div style={{ textAlign: 'center', maxWidth: 600, margin: '0 auto 64px' }}>
-          <Tag>{t.services.tag}</Tag>
-          <h2 style={{ fontSize: 'clamp(24px, 3vw, 38px)', fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }}>{t.services.title}</h2>
+{/* ── SERVICES ── */}
+<Section id="services" bg="#f8fafc">
+  <div ref={revealServices} className="reveal">
+    <div style={{ textAlign: 'center', maxWidth: 600, margin: '0 auto 64px' }}>
+      <Tag>{t.services.tag}</Tag>
+      <h2 style={{ fontSize: 'clamp(24px, 3vw, 38px)', fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }}>{t.services.title}</h2>
+    </div>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 24 }}>
+      {t.services.items.map((s, i) => (
+        <div key={i} style={{
+          background: '#fff', padding: '36px 28px', borderRadius: 20,
+          border: '1px solid #f1f5f9', transition: 'all .25s', cursor: 'default',
+        }}
+          onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 20px 48px rgba(201,169,110,.12)'; e.currentTarget.style.borderColor = '#E8D5B0'; }}
+          onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = '#f1f5f9'; }}
+        >
+          <div style={{
+            width: 48, height: 48, borderRadius: 14, background: '#F5EDD9',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#C9A96E', marginBottom: 24,
+          }}>{serviceIcons[i]}</div>
+          <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 10, color: '#0f172a' }}>{s.title}</h3>
+          <p style={{ fontSize: 14, color: '#64748b', lineHeight: 1.7 }}>{s.desc}</p>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 24 }}>
-          {t.services.items.map((s, i) => (
-            <div key={i} style={{
-              background: '#fff', padding: '36px 28px', borderRadius: 20,
-              border: '1px solid #f1f5f9', transition: 'all .25s', cursor: 'default',
-            }}
-              onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 20px 48px rgba(201,169,110,.12)'; e.currentTarget.style.borderColor = '#E8D5B0'; }}
-              onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = '#f1f5f9'; }}
-            >
+      ))}
+    </div>
+  </div>
+</Section>
+
+   {/* ── WHY US ── */}
+<Section id="why-us">
+  <div ref={revealWhyUs} className="reveal">
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'center' }} className="why-grid">
+      <div>
+        <Tag>{t.whyUs.tag}</Tag>
+        <h2 style={{ fontSize: 'clamp(28px, 3vw, 40px)', fontWeight: 800, lineHeight: 1.2, marginBottom: 40 }}>{t.whyUs.title}</h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+          {t.whyUs.items.map((item, i) => (
+            <div key={i} style={{ display: 'flex', gap: 18, alignItems: 'flex-start' }}>
               <div style={{
-                width: 48, height: 48, borderRadius: 14, background: '#F5EDD9',
+                width: 40, height: 40, borderRadius: '50%', background: '#0f172a',
+                color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              }}>{whyIcons[i]}</div>
+              <div>
+                <h4 style={{ fontWeight: 800, fontSize: 17, marginBottom: 6 }}>{item.title}</h4>
+                <p style={{ color: '#64748b', fontSize: 14, lineHeight: 1.7 }}>{item.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Problems/Solutions cards */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {[
+          {
+            problem: isRtl ? 'عندي فكرة لكن لا أعرف كيف أحوّلها لمنتج' : "I have an idea but don't know where to start",
+            solution: isRtl ? 'نأخذك من الفكرة إلى منتج حقيقي جاهز للسوق' : 'We take you from idea to a market-ready product',
+            icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+          },
+          {
+            problem: isRtl ? 'تعاملت مع شركات من قبل ولم تلتزم بالمواعيد أو الجودة' : 'I tried other agencies and got disappointed',
+            solution: isRtl ? 'نلتزم بجداول زمنية واضحة ومعايير جودة موثقة منذ اليوم الأول' : 'We commit to clear timelines and documented quality standards from day one',
+            icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          },
+          {
+            problem: isRtl ? 'لا أعرف أي التقنيات تناسب مشروعي وميزانيتي' : "I don't know the right tech for my project",
+            solution: isRtl ? 'نقيّم احتياجاتك ونوصي بأنسب التقنيات لهدفك وميزانيتك' : 'We evaluate your needs and recommend the best tech for your goal and budget',
+            icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          },
+        ].map((item, i) => (
+          <div key={i} style={{
+            padding: '20px 24px', borderRadius: 18,
+            background: i === 0 ? 'rgba(201,169,110,0.12)' : 'rgba(255,255,255,0.05)',
+            border: `1px solid ${i === 0 ? 'rgba(201,169,110,0.3)' : 'rgba(255,255,255,0.08)'}`,
+            transition: 'all .2s',
+          }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(201,169,110,0.12)'; e.currentTarget.style.borderColor = 'rgba(201,169,110,0.3)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = i === 0 ? 'rgba(201,169,110,0.12)' : 'rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor = i === 0 ? 'rgba(201,169,110,0.3)' : 'rgba(255,255,255,0.08)'; }}
+          >
+            <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+              <div style={{
+                width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+                background: 'rgba(201,169,110,0.2)', color: '#C9A96E',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#C9A96E', marginBottom: 24,
-              }}>{serviceIcons[i]}</div>
-              <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 10, color: '#0f172a' }}>{s.title}</h3>
-              <p style={{ fontSize: 14, color: '#64748b', lineHeight: 1.7 }}>{s.desc}</p>
+              }}>{item.icon}</div>
+              <div>
+                <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 6, lineHeight: 1.5 }}>
+                  "{item.problem}"
+                </div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#C9A96E', lineHeight: 1.5 }}>
+                  → {item.solution}
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</Section>
+{/* ── PROCESS ── */}
+<Section id="process" bg="#f8fafc" style={{ borderTop: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9' }}>
+  <div ref={revealProcess} className="reveal">
+    <div style={{ textAlign: 'center', marginBottom: 64 }}>
+      <Tag>{t.process.tag}</Tag>
+      <h2 style={{ fontSize: 'clamp(24px, 3vw, 36px)', fontWeight: 800 }}>{t.process.title}</h2>
+    </div>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 40, position: 'relative' }}>
+      <div style={{ position: 'absolute', top: 44, left: '8%', right: '8%', height: 1, background: '#e2e8f0' }} className="process-line" />
+      {t.process.steps.map((step, i) => (
+        <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', position: 'relative', zIndex: 1 }}>
+          <div style={{
+            width: 88, height: 88, borderRadius: '50%', background: '#fff',
+            border: '3px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#C9A96E', marginBottom: 20, boxShadow: '0 4px 16px rgba(0,0,0,.06)',
+            transition: 'transform .3s',
+          }}
+            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.12)'}
+            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+          >{processIcons[i]}</div>
+          <div style={{
+            fontSize: 12, fontWeight: 800, color: '#C9A96E', letterSpacing: '0.1em',
+            textTransform: 'uppercase', marginBottom: 6,
+          }}>0{i + 1}</div>
+          <h4 style={{ fontWeight: 800, fontSize: 17, marginBottom: 8 }}>{step.title}</h4>
+          <p style={{ color: '#64748b', fontSize: 13, lineHeight: 1.6, maxWidth: 180 }}>{step.desc}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</Section>
+
+  {/* ── ABOUT ── */}
+<Section>
+  <div ref={revealAbout} className="reveal" style={{ maxWidth: 760, margin: '0 auto', textAlign: 'center' }}>
+    <Tag>{t.about.tag}</Tag>
+    <h2 style={{ fontSize: 'clamp(24px, 3vw, 36px)', fontWeight: 800, marginBottom: 20 }}>{t.about.title}</h2>
+    <p style={{ fontSize: 17, color: '#475569', lineHeight: 1.8 }}>{t.about.desc}</p>
+  </div>
+</Section>
+
+     {/* ── CONTACT ── */}
+<Section id="contact" bg="#f8fafc">
+  <div ref={revealContact} className="reveal">
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80 }} className="contact-grid">
+      <div>
+        <Tag>{t.contact.tag}</Tag>
+        <h2 style={{ fontSize: 'clamp(28px, 3vw, 42px)', fontWeight: 800, marginBottom: 16, lineHeight: 1.15 }}>{t.contact.title}</h2>
+        <p style={{ color: '#64748b', fontSize: 16, marginBottom: 40, lineHeight: 1.7 }}>{t.contact.sub}</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {[
+            { Icon: Mail, label: isRtl ? 'راسلنا' : 'Email us', value: 'sales@zeiia.com' },
+            { Icon: Phone, label: isRtl ? 'اتصل / واتساب' : 'Call / WhatsApp', value: '+20 100 000 0000' },
+          ].map(({ Icon, label, value }) => (
+            <div key={label} style={{
+              display: 'flex', alignItems: 'center', gap: 16,
+              padding: 18, background: '#fff', borderRadius: 18,
+              border: '1px solid #f1f5f9', boxShadow: '0 2px 8px rgba(0,0,0,.04)',
+              transition: 'all .2s', cursor: 'pointer',
+            }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = '#E8D5B0'}
+              onMouseLeave={e => e.currentTarget.style.borderColor = '#f1f5f9'}
+            >
+              <div style={{ width: 40, height: 40, borderRadius: 12, background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
+                <Icon size={20} />
+              </div>
+              <div>
+                <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{label}</div>
+                <div style={{ fontWeight: 700, fontSize: 15, color: '#0f172a' }} dir="ltr">{value}</div>
+              </div>
             </div>
           ))}
         </div>
-      </Section>
+      </div>
 
-      {/* ── WHY US ── */}
-      <Section id="why-us">
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'center' }} className="why-grid">
-          <div>
-            <Tag>{t.whyUs.tag}</Tag>
-            <h2 style={{ fontSize: 'clamp(28px, 3vw, 40px)', fontWeight: 800, lineHeight: 1.2, marginBottom: 40 }}>{t.whyUs.title}</h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-              {t.whyUs.items.map((item, i) => (
-                <div key={i} style={{ display: 'flex', gap: 18, alignItems: 'flex-start' }}>
-                  <div style={{
-                    width: 40, height: 40, borderRadius: '50%', background: '#0f172a',
-                    color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                  }}>{whyIcons[i]}</div>
-                  <div>
-                    <h4 style={{ fontWeight: 800, fontSize: 17, marginBottom: 6 }}>{item.title}</h4>
-                    <p style={{ color: '#64748b', fontSize: 14, lineHeight: 1.7 }}>{item.desc}</p>
-                  </div>
-                </div>
-              ))}
+      {/* Form */}
+      <div style={{ background: '#fff', padding: '48px 40px', borderRadius: 28, border: '1px solid #f1f5f9', boxShadow: '0 32px 64px rgba(0,0,0,.08)' }}>
+        {formStatus === 'success' ? (
+          <div style={{ minHeight: 300, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+            <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#f0fdf4', color: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
+              <ShieldCheck size={36} />
             </div>
+            <h3 style={{ fontSize: 24, fontWeight: 800, marginBottom: 8 }}>{t.contact.success}</h3>
+            <p style={{ color: '#64748b' }}>{t.contact.successSub}</p>
           </div>
+        ) : (
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-          {/* Problems/Solutions cards */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {[
-              {
-                problem: isRtl ? 'عندي فكرة لكن لا أعرف كيف أحوّلها لمنتج' : "I have an idea but don't know where to start",
-                solution: isRtl ? 'نأخذك من الفكرة إلى منتج حقيقي جاهز للسوق' : 'We take you from idea to a market-ready product',
-                icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-              },
-              {
-                problem: isRtl ? 'تعاملت مع شركات من قبل ولم تلتزم بالمواعيد أو الجودة' : 'I tried other agencies and got disappointed',
-                solution: isRtl ? 'نلتزم بجداول زمنية واضحة ومعايير جودة موثقة منذ اليوم الأول' : 'We commit to clear timelines and documented quality standards from day one',
-                icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-              },
-              {
-                problem: isRtl ? 'لا أعرف أي التقنيات تناسب مشروعي وميزانيتي' : "I don't know the right tech for my project",
-                solution: isRtl ? 'نقيّم احتياجاتك ونوصي بأنسب التقنيات لهدفك وميزانيتك' : 'We evaluate your needs and recommend the best tech for your goal and budget',
-                icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-              },
-            ].map((item, i) => (
-              <div key={i} style={{
-                padding: '20px 24px', borderRadius: 18,
-                background: i === 0 ? 'rgba(201,169,110,0.12)' : 'rgba(255,255,255,0.05)',
-                border: `1px solid ${i === 0 ? 'rgba(201,169,110,0.3)' : 'rgba(255,255,255,0.08)'}`,
-                transition: 'all .2s',
-              }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(201,169,110,0.12)'; e.currentTarget.style.borderColor = 'rgba(201,169,110,0.3)'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = i === 0 ? 'rgba(201,169,110,0.12)' : 'rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor = i === 0 ? 'rgba(201,169,110,0.3)' : 'rgba(255,255,255,0.08)'; }}
-              >
-                <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-                  <div style={{
-                    width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-                    background: 'rgba(201,169,110,0.2)', color: '#C9A96E',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>{item.icon}</div>
-                  <div>
-                    <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 6, lineHeight: 1.5 }}>
-                      "{item.problem}"
-                    </div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#C9A96E', lineHeight: 1.5 }}>
-                      → {item.solution}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </Section>
-
-      {/* ── PROCESS ── */}
-      <Section id="process" bg="#f8fafc" style={{ borderTop: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9' }}>
-        <div style={{ textAlign: 'center', marginBottom: 64 }}>
-          <Tag>{t.process.tag}</Tag>
-          <h2 style={{ fontSize: 'clamp(24px, 3vw, 36px)', fontWeight: 800 }}>{t.process.title}</h2>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 40, position: 'relative' }}>
-          <div style={{ position: 'absolute', top: 44, left: '8%', right: '8%', height: 1, background: '#e2e8f0' }} className="process-line" />
-          {t.process.steps.map((step, i) => (
-            <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', position: 'relative', zIndex: 1 }}>
-              <div style={{
-                width: 88, height: 88, borderRadius: '50%', background: '#fff',
-                border: '3px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#C9A96E', marginBottom: 20, boxShadow: '0 4px 16px rgba(0,0,0,.06)',
-                transition: 'transform .3s',
-              }}
-                onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.12)'}
-                onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-              >{processIcons[i]}</div>
-              <div style={{
-                fontSize: 12, fontWeight: 800, color: '#C9A96E', letterSpacing: '0.1em',
-                textTransform: 'uppercase', marginBottom: 6,
-              }}>0{i + 1}</div>
-              <h4 style={{ fontWeight: 800, fontSize: 17, marginBottom: 8 }}>{step.title}</h4>
-              <p style={{ color: '#64748b', fontSize: 13, lineHeight: 1.6, maxWidth: 180 }}>{step.desc}</p>
-            </div>
-          ))}
-        </div>
-      </Section>
-
-      {/* ── ABOUT ── */}
-      <Section>
-        <div style={{ maxWidth: 760, margin: '0 auto', textAlign: 'center' }}>
-          <Tag>{t.about.tag}</Tag>
-          <h2 style={{ fontSize: 'clamp(24px, 3vw, 36px)', fontWeight: 800, marginBottom: 20 }}>{t.about.title}</h2>
-          <p style={{ fontSize: 17, color: '#475569', lineHeight: 1.8 }}>{t.about.desc}</p>
-        </div>
-      </Section>
-
-      {/* ── CONTACT ── */}
-      <Section id="contact" bg="#f8fafc">
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80 }} className="contact-grid">
-          <div>
-            <Tag>{t.contact.tag}</Tag>
-            <h2 style={{ fontSize: 'clamp(28px, 3vw, 42px)', fontWeight: 800, marginBottom: 16, lineHeight: 1.15 }}>{t.contact.title}</h2>
-            <p style={{ color: '#64748b', fontSize: 16, marginBottom: 40, lineHeight: 1.7 }}>{t.contact.sub}</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {[
-                { Icon: Mail, label: isRtl ? 'راسلنا' : 'Email us', value: 'sales@zeiia.com' },
-                { Icon: Phone, label: isRtl ? 'اتصل / واتساب' : 'Call / WhatsApp', value: '+20 100 000 0000' },
-              ].map(({ Icon, label, value }) => (
-                <div key={label} style={{
-                  display: 'flex', alignItems: 'center', gap: 16,
-                  padding: 18, background: '#fff', borderRadius: 18,
-                  border: '1px solid #f1f5f9', boxShadow: '0 2px 8px rgba(0,0,0,.04)',
-                  transition: 'all .2s', cursor: 'pointer',
-                }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = '#E8D5B0'}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = '#f1f5f9'}
-                >
-                  <div style={{ width: 40, height: 40, borderRadius: 12, background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
-                    <Icon size={20} />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{label}</div>
-                    <div style={{ fontWeight: 700, fontSize: 15, color: '#0f172a' }} dir="ltr">{value}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Form */}
-          <div style={{ background: '#fff', padding: '48px 40px', borderRadius: 28, border: '1px solid #f1f5f9', boxShadow: '0 32px 64px rgba(0,0,0,.08)' }}>
-            {formStatus === 'success' ? (
-              <div style={{ minHeight: 300, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
-                <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#f0fdf4', color: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
-                  <ShieldCheck size={36} />
-                </div>
-                <h3 style={{ fontSize: 24, fontWeight: 800, marginBottom: 8 }}>{t.contact.success}</h3>
-                <p style={{ color: '#64748b' }}>{t.contact.successSub}</p>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-
-                {/* name + email */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 8 }}>
-                      {t.contact.formName}
-                    </label>
-                    <input
-                      required
-                      type="text"
-                      placeholder={isRtl ? 'محمد أحمد' : 'John Doe'}
-                      value={formData.name}
-                      onChange={e => {
-                        const val = e.target.value;
-                        if (/^[\u0600-\u06FFa-zA-Z\s]*$/.test(val)) {
-                          setFormData({ ...formData, name: val });
-                        }
-                      }}
-                      style={{
-                        width: '100%', padding: '12px 16px', borderRadius: 12,
-                        border: '1.5px solid #e2e8f0', background: '#f8fafc',
-                        fontSize: 14, fontFamily: 'Tajawal, sans-serif', outline: 'none',
-                        transition: 'border-color .2s', boxSizing: 'border-box',
-                      }}
-                      onFocus={e => e.target.style.borderColor = '#C9A96E'}
-                      onBlur={e => e.target.style.borderColor = '#e2e8f0'}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 8 }}>
-                      {t.contact.formEmail}
-                    </label>
-                    <input
-                      required
-                      type="email"
-                      placeholder="hello@example.com"
-                      value={formData.email}
-                      onChange={e => setFormData({ ...formData, email: e.target.value })}
-                      style={{
-                        width: '100%', padding: '12px 16px', borderRadius: 12,
-                        border: '1.5px solid #e2e8f0', background: '#f8fafc',
-                        fontSize: 14, fontFamily: 'Tajawal, sans-serif', outline: 'none',
-                        transition: 'border-color .2s', boxSizing: 'border-box',
-                      }}
-                      onFocus={e => e.target.style.borderColor = '#C9A96E'}
-                      onBlur={e => e.target.style.borderColor = '#e2e8f0'}
-                    />
-                  </div>
-                </div>
-
-                {/* phone */}
-                <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 8 }}>
-                    {isRtl ? 'رقم الهاتف' : 'Phone Number'}
-                  </label>
-                  <input
-                    required
-                    type="tel"
-                    dir="ltr"
-                    placeholder="+20 100 000 0000"
-                    value={formData.phone}
-                    onChange={e => {
-                      const val = e.target.value;
-                      if (/^[0-9+\s()-]*$/.test(val)) {
-                        setFormData({ ...formData, phone: val });
-                      }
-                    }}
-                    style={{
-                      width: '100%', padding: '12px 16px', borderRadius: 12,
-                      border: `1.5px solid ${formData.phone && !/^[0-9+\s()-]{7,15}$/.test(formData.phone) ? '#f87171' : '#e2e8f0'}`,
-                      background: '#f8fafc',
-                      fontSize: 14, fontFamily: 'Tajawal, sans-serif', outline: 'none',
-                      transition: 'border-color .2s', boxSizing: 'border-box',
-                    }}
-                    onFocus={e => e.target.style.borderColor = '#C9A96E'}
-                    onBlur={e => {
-                      if (formData.phone && !/^[0-9+\s()-]{7,15}$/.test(formData.phone)) {
-                        e.target.style.borderColor = '#f87171';
-                      } else {
-                        e.target.style.borderColor = '#e2e8f0';
-                      }
-                    }}
-                  />
-                  {formData.phone && !/^[0-9+\s()-]{7,15}$/.test(formData.phone) && (
-                    <p style={{ fontSize: 11, color: '#f87171', marginTop: 6, fontWeight: 600 }}>
-                      {isRtl ? 'رقم الهاتف غير صحيح' : 'Invalid phone number'}
-                    </p>
-                  )}
-                </div>
-
-                {/* message */}
-                <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 8 }}>
-                    {t.contact.formMsg}
-                  </label>
-                  <textarea
-                    required
-                    rows={5}
-                    placeholder={isRtl ? 'اكتب رسالتك هنا...' : 'Tell us about your project...'}
-                    value={formData.message}
-                    onChange={e => setFormData({ ...formData, message: e.target.value })}
-                    style={{
-                      width: '100%', padding: '12px 16px', borderRadius: 12,
-                      border: '1.5px solid #e2e8f0', background: '#f8fafc',
-                      fontSize: 14, fontFamily: 'Tajawal, sans-serif', outline: 'none',
-                      resize: 'none', transition: 'border-color .2s', boxSizing: 'border-box',
-                    }}
-                    onFocus={e => e.target.style.borderColor = '#C9A96E'}
-                    onBlur={e => e.target.style.borderColor = '#e2e8f0'}
-                  />
-                </div>
-
-                {/* submit */}
-                <button
-                  type="submit"
-                  style={{
-                    padding: '16px', background: '#0f172a', color: '#fff',
-                    borderRadius: 14, fontWeight: 800, fontSize: 15, border: 'none',
-                    cursor: 'pointer', fontFamily: 'Tajawal, sans-serif',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                    transition: 'background .2s', boxShadow: '0 8px 24px rgba(15,23,42,.15)',
+            {/* name + email */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 8 }}>
+                  {t.contact.formName}
+                </label>
+                <input
+                  required
+                  type="text"
+                  placeholder={isRtl ? 'محمد أحمد' : 'John Doe'}
+                  value={formData.name}
+                  onChange={e => {
+                    const val = e.target.value;
+                    if (/^[\u0600-\u06FFa-zA-Z\s]*$/.test(val)) {
+                      setFormData({ ...formData, name: val });
+                    }
                   }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#C9A96E'}
-                  onMouseLeave={e => e.currentTarget.style.background = '#0f172a'}
-                >
-                  {t.contact.formBtn}
-                  <ArrowRight size={18} style={{ transform: isRtl ? 'rotate(180deg)' : 'none' }} />
-                </button>
+                  style={{
+                    width: '100%', padding: '12px 16px', borderRadius: 12,
+                    border: '1.5px solid #e2e8f0', background: '#f8fafc',
+                    fontSize: 14, fontFamily: 'Tajawal, sans-serif', outline: 'none',
+                    transition: 'border-color .2s', boxSizing: 'border-box',
+                  }}
+                  onFocus={e => e.target.style.borderColor = '#C9A96E'}
+                  onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 8 }}>
+                  {t.contact.formEmail}
+                </label>
+                <input
+                  required
+                  type="email"
+                  placeholder="hello@example.com"
+                  value={formData.email}
+                  onChange={e => setFormData({ ...formData, email: e.target.value })}
+                  style={{
+                    width: '100%', padding: '12px 16px', borderRadius: 12,
+                    border: '1.5px solid #e2e8f0', background: '#f8fafc',
+                    fontSize: 14, fontFamily: 'Tajawal, sans-serif', outline: 'none',
+                    transition: 'border-color .2s', boxSizing: 'border-box',
+                  }}
+                  onFocus={e => e.target.style.borderColor = '#C9A96E'}
+                  onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+                />
+              </div>
+            </div>
 
-              </form>
-            )}
-          </div>
-        </div>
-      </Section>
+            {/* phone */}
+            <div>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 8 }}>
+                {isRtl ? 'رقم الهاتف' : 'Phone Number'}
+              </label>
+              <input
+                required
+                type="tel"
+                dir="ltr"
+                placeholder="+20 100 000 0000"
+                value={formData.phone}
+                onChange={e => {
+                  const val = e.target.value;
+                  if (/^[0-9+\s()-]*$/.test(val)) {
+                    setFormData({ ...formData, phone: val });
+                  }
+                }}
+                style={{
+                  width: '100%', padding: '12px 16px', borderRadius: 12,
+                  border: `1.5px solid ${formData.phone && !/^[0-9+\s()-]{7,15}$/.test(formData.phone) ? '#f87171' : '#e2e8f0'}`,
+                  background: '#f8fafc',
+                  fontSize: 14, fontFamily: 'Tajawal, sans-serif', outline: 'none',
+                  transition: 'border-color .2s', boxSizing: 'border-box',
+                }}
+                onFocus={e => e.target.style.borderColor = '#C9A96E'}
+                onBlur={e => {
+                  if (formData.phone && !/^[0-9+\s()-]{7,15}$/.test(formData.phone)) {
+                    e.target.style.borderColor = '#f87171';
+                  } else {
+                    e.target.style.borderColor = '#e2e8f0';
+                  }
+                }}
+              />
+              {formData.phone && !/^[0-9+\s()-]{7,15}$/.test(formData.phone) && (
+                <p style={{ fontSize: 11, color: '#f87171', marginTop: 6, fontWeight: 600 }}>
+                  {isRtl ? 'رقم الهاتف غير صحيح' : 'Invalid phone number'}
+                </p>
+              )}
+            </div>
 
+            {/* message */}
+            <div>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 8 }}>
+                {t.contact.formMsg}
+              </label>
+              <textarea
+                required
+                rows={5}
+                placeholder={isRtl ? 'اكتب رسالتك هنا...' : 'Tell us about your project...'}
+                value={formData.message}
+                onChange={e => setFormData({ ...formData, message: e.target.value })}
+                style={{
+                  width: '100%', padding: '12px 16px', borderRadius: 12,
+                  border: '1.5px solid #e2e8f0', background: '#f8fafc',
+                  fontSize: 14, fontFamily: 'Tajawal, sans-serif', outline: 'none',
+                  resize: 'none', transition: 'border-color .2s', boxSizing: 'border-box',
+                }}
+                onFocus={e => e.target.style.borderColor = '#C9A96E'}
+                onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+              />
+            </div>
+
+            {/* submit */}
+            <button
+              type="submit"
+              style={{
+                padding: '16px', background: '#0f172a', color: '#fff',
+                borderRadius: 14, fontWeight: 800, fontSize: 15, border: 'none',
+                cursor: 'pointer', fontFamily: 'Tajawal, sans-serif',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                transition: 'background .2s', boxShadow: '0 8px 24px rgba(15,23,42,.15)',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = '#C9A96E'}
+              onMouseLeave={e => e.currentTarget.style.background = '#0f172a'}
+            >
+              {t.contact.formBtn}
+              <ArrowRight size={18} style={{ transform: isRtl ? 'rotate(180deg)' : 'none' }} />
+            </button>
+
+          </form>
+        )}
+      </div>
+    </div>
+  </div>
+</Section>
       {/* ── FOOTER ── */}
       <footer style={{ background: '#0f172a', color: '#94a3b8', padding: '80px 24px 40px', borderRadius: '24px 24px 0 0', margin: '0 16px' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
@@ -871,10 +924,11 @@ const App = () => {
         .animate-blob { animation: blob 7s infinite; }
         .animation-delay-2000 { animation-delay: 2s; }
         html { scroll-behavior: smooth; }
+       
 
         @media (max-width: 900px) {
           .hero-grid, .why-grid, .contact-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
-          .hero-illustration { display: none; }
+          .hero-illustration { display: flex !important; }
           .process-line { display: none; }
         }
         @media (max-width: 768px) {
