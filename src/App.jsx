@@ -54,6 +54,20 @@ const Btn = ({ href, primary, children, style = {} }) => (
     onMouseLeave={e => e.currentTarget.style.opacity = '1'}
   >{children}</a>
 );
+const useReveal = () => {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { el.classList.add('visible'); obs.disconnect(); } },
+      { threshold: 0.15 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return ref;
+};
 
 const Section = ({ id, bg, children, style = {} }) => (
   <section id={id} style={{ padding: '64px 24px', background: bg || '#fff', ...style }}>
@@ -168,6 +182,11 @@ const App = () => {
   const [formStatus, setFormStatus] = useState(null);
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', message: '' });
   const isRtl = lang === 'ar';
+  const revealServices = useReveal();
+const revealWhyUs   = useReveal();
+const revealProcess = useReveal();
+const revealAbout   = useReveal();
+const revealContact = useReveal();
 
   const translations = {
     en: {
@@ -337,9 +356,9 @@ const App = () => {
       </section>
 
       {/* SERVICES */}
-      <Section id="services" bg="#f8fafc">
-        <div className="section-animate">
-          <div style={{ textAlign: 'center', maxWidth: 600, margin: '0 auto 64px' }}>
+<Section id="services" bg="#f8fafc">
+  <div ref={revealServices} className="section-animate">
+              <div style={{ textAlign: 'center', maxWidth: 600, margin: '0 auto 64px' }}>
             <Tag>{t.services.tag}</Tag>
             <h2 style={{ fontSize: 'clamp(24px, 3vw, 38px)', fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }}>{t.services.title}</h2>
           </div>
@@ -358,8 +377,8 @@ const App = () => {
       </Section>
 
       {/* WHY US */}
-      <Section id="why-us">
-        <div className="section-animate">
+<Section id="why-us">
+  <div ref={revealWhyUs} className="section-animate">
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'center' }} className="why-grid">
             <div>
               <Tag>{t.whyUs.tag}</Tag>
@@ -400,9 +419,9 @@ const App = () => {
       </Section>
 
       {/* PROCESS */}
-      <Section id="process" bg="#f8fafc" style={{ borderTop: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9' }}>
-        <div className="section-animate">
-          <div style={{ textAlign: 'center', marginBottom: 64 }}>
+<Section id="process" bg="#f8fafc" style={{ borderTop: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9' }}>
+  <div ref={revealProcess} className="section-animate">
+              <div style={{ textAlign: 'center', marginBottom: 64 }}>
             <Tag>{t.process.tag}</Tag>
             <h2 style={{ fontSize: 'clamp(24px, 3vw, 36px)', fontWeight: 800 }}>{t.process.title}</h2>
           </div>
@@ -423,8 +442,7 @@ const App = () => {
 
       {/* ABOUT */}
       <Section>
-        <div className="section-animate" style={{ maxWidth: 760, margin: '0 auto', textAlign: 'center' }}>
-          <Tag>{t.about.tag}</Tag>
+<div ref={revealAbout} className="section-animate" style={{ maxWidth: 760, margin: '0 auto', textAlign: 'center' }}>          <Tag>{t.about.tag}</Tag>
           <h2 style={{ fontSize: 'clamp(24px, 3vw, 36px)', fontWeight: 800, marginBottom: 20 }}>{t.about.title}</h2>
           <p style={{ fontSize: 17, color: '#475569', lineHeight: 1.8 }}>{t.about.desc}</p>
         </div>
@@ -432,7 +450,7 @@ const App = () => {
 
       {/* CONTACT */}
       <Section id="contact" bg="#f8fafc">
-        <div className="section-animate">
+  <div ref={revealContact} className="section-animate">
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80 }} className="contact-grid">
             <div>
               <Tag>{t.contact.tag}</Tag>
@@ -441,7 +459,7 @@ const App = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {[
                   { Icon: Mail, label: isRtl ? 'راسلنا' : 'Email us', value: 'sales@zeiia.com' },
-                  { Icon: Phone, label: isRtl ? 'اتصل / واتساب' : 'Call / WhatsApp', value: '+20 100 000 0000' },
+                  { Icon: Phone, label: isRtl ? 'اتصل / واتساب' : 'Call / WhatsApp', value: '+201207715484' },
                 ].map(({ Icon, label, value }) => (
                   <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: 18, background: '#fff', borderRadius: 18, border: '1px solid #f1f5f9', boxShadow: '0 2px 8px rgba(0,0,0,.04)', transition: 'all .2s', cursor: 'pointer' }}
                     onMouseEnter={e => e.currentTarget.style.borderColor = '#E8D5B0'} onMouseLeave={e => e.currentTarget.style.borderColor = '#f1f5f9'}>
@@ -561,24 +579,24 @@ const App = () => {
       </footer>
 
       <style>{`
-        @keyframes ping { 75%, 100% { transform: scale(2); opacity: 0; } }
-        @keyframes blob { 0% { transform: translate(0,0) scale(1); } 33% { transform: translate(30px,-50px) scale(1.1); } 66% { transform: translate(-20px,20px) scale(0.9); } 100% { transform: translate(0,0) scale(1); } }
-        @keyframes orbit { from { transform: rotate(0deg) translateX(180px) rotate(0deg); } to { transform: rotate(360deg) translateX(180px) rotate(-360deg); } }
-        @keyframes orbit2 { from { transform: rotate(180deg) translateX(150px) rotate(-180deg); } to { transform: rotate(540deg) translateX(150px) rotate(-540deg); } }
-        .animate-blob { animation: blob 7s infinite; }
-        .orb1 { animation: orbit 8s linear infinite; }
-        .orb2 { animation: orbit2 12s linear infinite; }
-        html { scroll-behavior: smooth; }
-        @media (max-width: 900px) {
-          .hero-grid, .why-grid, .contact-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
-          .hero-illustration { display: flex !important; }
-          .process-line { display: none; }
-        }
-        @media (max-width: 768px) { .desktop-nav { display: none !important; } .mobile-nav { display: flex !important; } }
-        @media (min-width: 769px) { .mobile-nav { display: none !important; } }
-      `}</style>
+  @keyframes ping { 75%, 100% { transform: scale(2); opacity: 0; } }
+  @keyframes blob { 0% { transform: translate(0,0) scale(1); } 33% { transform: translate(30px,-50px) scale(1.1); } 66% { transform: translate(-20px,20px) scale(0.9); } 100% { transform: translate(0,0) scale(1); } }
+  @keyframes orbit { from { transform: rotate(0deg) translateX(180px) rotate(0deg); } to { transform: rotate(360deg) translateX(180px) rotate(-360deg); } }
+  @keyframes orbit2 { from { transform: rotate(180deg) translateX(150px) rotate(-180deg); } to { transform: rotate(540deg) translateX(150px) rotate(-540deg); } }
+  .animate-blob { animation: blob 7s infinite; }
+  .orb1 { animation: orbit 8s linear infinite; }
+  .orb2 { animation: orbit2 12s linear infinite; }
+  html { scroll-behavior: smooth; }
+  @media (max-width: 900px) {
+    .hero-grid, .why-grid, .contact-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
+    .hero-illustration { display: flex !important; }
+    .process-line { display: none; }
+  }
+  @media (max-width: 768px) { .desktop-nav { display: none !important; } .mobile-nav { display: flex !important; } }
+  @media (min-width: 769px) { .mobile-nav { display: none !important; } }
+`}</style>
 
-      <a href="https://wa.me/201000000000" target="_blank" rel="noopener noreferrer"
+      <a href="https://wa.me/201207715484" target="_blank" rel="noopener noreferrer"
         style={{ position: 'fixed', bottom: 32, left: isRtl ? 32 : 'auto', right: isRtl ? 'auto' : 32, zIndex: 999, width: 56, height: 56, borderRadius: '50%', background: '#25d366', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(37,211,102,.4)', transition: 'transform .2s, box-shadow .2s', textDecoration: 'none' }}
         onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(37,211,102,.5)'; }}
         onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(37,211,102,.4)'; }}>
