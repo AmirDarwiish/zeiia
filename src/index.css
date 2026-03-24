@@ -82,3 +82,10 @@ body {
 @media (min-width: 769px) {
   .mobile-nav { display: none !important; }
 }
+* {
+  font-family: 'Tajawal', 'Cairo', Arial, sans-serif !important;
+}
+body {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
