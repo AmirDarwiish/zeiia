@@ -593,7 +593,6 @@ WebkitBackdropFilter: 'blur(20px)',
     {isRtl ? 'رقم الهاتف' : 'Phone Number'}
   </label>
   <div style={{ display: 'flex', gap: 8 }}>
-      <div style={{ position: 'relative', zIndex: 9999 }}>
     <select
       value={formData.countryCode}
       onChange={e => setFormData({ ...formData, countryCode: e.target.value })}
@@ -642,7 +641,6 @@ WebkitBackdropFilter: 'blur(20px)',
       onBlur={e => e.target.style.borderColor = '#e2e8f0'}
     />
   </div>
-    </div>
 </div>
                   <div>
                     <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 8 }}>{t.contact.formMsg}</label>
