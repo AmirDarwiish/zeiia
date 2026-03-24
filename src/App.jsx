@@ -338,17 +338,14 @@ WebkitBackdropFilter: 'blur(20px)',
 
       {/* center logo text */}
       <text x="260" y="248" textAnchor="middle"
-        style={{ fontFamily: 'Georgia, serif', fontSize: 52, fontWeight: 400, fill: '#1a2a6e', letterSpacing: 12, opacity: 0, animation: 'fadeInLogo 1s ease forwards 1.4s' }}>
+        style={{ fontFamily: 'Georgia, serif', fontSize: 52, fontWeight: 400, fill: '#0f172a', letterSpacing: 12, opacity: 0, animation: 'fadeInLogo 1s ease forwards 1.4s' }}>
         ZEIIA
       </text>
-      <text x="260" y="292" textAnchor="middle"
-        style={{ fontFamily: 'Tajawal, sans-serif', fontSize: 22, fontWeight: 300, fill: '#C9A96E', letterSpacing: 6, opacity: 0, animation: 'fadeInLogo 1s ease forwards 1.7s' }}>
-        زيا
-      </text>
+
 
       {/* tagline */}
-      <text x="260" y="340" textAnchor="middle"
-        style={{ fontFamily: 'Tajawal, sans-serif', fontSize: 10, fontWeight: 400, fill: '#C9A96E', letterSpacing: 4, opacity: 0, textTransform: 'uppercase', animation: 'fadeInLogo 1s ease forwards 2s' }}>
+      <text x="260" y="300" textAnchor="middle"
+        style={{ fontFamily: 'Tajawal, sans-serif', fontSize: 15, fontWeight: 400, fill: '#4a9688', letterSpacing: 4, opacity: 0, textTransform: 'uppercase', animation: 'fadeInLogo 1s ease forwards 2s' }}>
         {isRtl ? 'شريكك التقني' : 'YOUR TECH PARTNER'}
       </text>
 
