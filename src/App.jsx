@@ -321,7 +321,7 @@ useEffect(() => {
 {/* ── INTRO ── */}
 {showIntro && (
   <div style={{
-    position: 'fixed', inset: 0, zIndex: 9999,
+    position: 'fixed', inset: 0, zIndex: 9999, pointerEvents: introLeave ? 'none' : 'auto',opacity: introLeave ? 0 : 1,
 background: 'rgba(255,255,255,0.15)',
 backdropFilter: 'blur(20px)',
 WebkitBackdropFilter: 'blur(20px)',
@@ -360,7 +360,7 @@ WebkitBackdropFilter: 'blur(20px)',
 
       {/* tagline */}
       <text x="260" y="300" textAnchor="middle"
-        style={{ fontFamily: 'Tajawal, sans-serif', fontSize: 15, fontWeight: 400, fill: '#4a9688', letterSpacing: 4, opacity: 0, textTransform: 'uppercase', animation: 'fadeInLogo 1s ease forwards 2s' }}>
+        style={{ fontFamily: 'Tajawal, sans-serif', fontSize: 15, fontWeight: 400, fill: '#4a9688', letterSpacing: isRtl ? 0 : 4, opacity: 0, textTransform: 'uppercase', animation: 'fadeInLogo 1s ease forwards 2s' }}>
         {isRtl ? 'شريكك التقني' : 'YOUR TECH PARTNER'}
       </text>
 
@@ -593,6 +593,7 @@ WebkitBackdropFilter: 'blur(20px)',
     {isRtl ? 'رقم الهاتف' : 'Phone Number'}
   </label>
   <div style={{ display: 'flex', gap: 8 }}>
+      <div style={{ position: 'relative', zIndex: 9999 }}>
     <select
       value={formData.countryCode}
       onChange={e => setFormData({ ...formData, countryCode: e.target.value })}
@@ -641,6 +642,7 @@ WebkitBackdropFilter: 'blur(20px)',
       onBlur={e => e.target.style.borderColor = '#e2e8f0'}
     />
   </div>
+    </div>
 </div>
                   <div>
                     <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 8 }}>{t.contact.formMsg}</label>
