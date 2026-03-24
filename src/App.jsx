@@ -181,6 +181,13 @@ const App = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [formStatus, setFormStatus] = useState(null);
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', message: '' });
+  const [showIntro, setShowIntro] = useState(true);
+const [introLeave, setIntroLeave] = useState(false);
+useEffect(() => {
+  const t1 = setTimeout(() => setIntroLeave(true), 2800);
+  const t2 = setTimeout(() => setShowIntro(false), 4000);
+  return () => { clearTimeout(t1); clearTimeout(t2); };
+}, []);
   const isRtl = lang === 'ar';
   const revealServices = useReveal();
 const revealWhyUs   = useReveal();
@@ -296,7 +303,79 @@ const revealContact = useReveal();
 
   return (
     <div dir={isRtl ? 'rtl' : 'ltr'} style={{ minHeight: '100vh', background: '#fff', color: '#0f172a', overflowX: 'hidden' }}>
+{/* ── INTRO ── */}
+{showIntro && (
+  <div style={{
+    position: 'fixed', inset: 0, zIndex: 9999,
+background: 'rgba(255,255,255,0.15)',
+backdropFilter: 'blur(20px)',
+WebkitBackdropFilter: 'blur(20px)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    animation: introLeave ? 'introOut 1.2s cubic-bezier(0.76,0,0.24,1) forwards' : 'none',
+  }}>
+    <svg width="520" height="520" viewBox="0 0 520 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* outer ring */}
+      <circle cx="260" cy="260" r="200" stroke="#C9A96E" strokeWidth="0.5" opacity="0.2"
+        style={{ strokeDasharray: 1257, strokeDashoffset: 1257, animation: 'drawRing 2s ease forwards 0.2s' }}/>
+      <circle cx="260" cy="260" r="160" stroke="#C9A96E" strokeWidth="0.3" opacity="0.15"
+        style={{ strokeDasharray: 1005, strokeDashoffset: 1005, animation: 'drawRing 2s ease forwards 0.5s' }}/>
 
+      {/* golden wave lines */}
+      {[0,1,2,3,4,5,6,7,8].map(i => (
+        <path key={i}
+          d={`M ${80 + i*4} ${200 + Math.sin(i)*20} Q ${200 + i*10} ${140 + i*8} ${260} ${220 + i*5} Q ${320 - i*8} ${300 - i*6} ${440 - i*4} ${200 + Math.cos(i)*15}`}
+          stroke="#C9A96E" strokeWidth="0.8" opacity={0.15 + i * 0.08} fill="none"
+          style={{ strokeDasharray: 500, strokeDashoffset: 500, animation: `drawLine 1.8s ease forwards ${0.1 + i * 0.12}s` }}
+        />
+      ))}
+      {[0,1,2,3,4,5].map(i => (
+        <path key={`b${i}`}
+          d={`M ${100 + i*5} ${320 - i*3} Q ${200 - i*8} ${380 + i*5} ${260} ${300 - i*4} Q ${330 + i*6} ${240 - i*5} ${420 - i*4} ${330 + i*3}`}
+          stroke="#C9A96E" strokeWidth="0.6" opacity={0.1 + i * 0.06} fill="none"
+          style={{ strokeDasharray: 400, strokeDashoffset: 400, animation: `drawLine 1.8s ease forwards ${0.3 + i * 0.15}s` }}
+        />
+      ))}
+
+      {/* center logo text */}
+      <text x="260" y="248" textAnchor="middle"
+        style={{ fontFamily: 'Georgia, serif', fontSize: 52, fontWeight: 400, fill: '#1a2a6e', letterSpacing: 12, opacity: 0, animation: 'fadeInLogo 1s ease forwards 1.4s' }}>
+        ZEIIA
+      </text>
+      <text x="260" y="292" textAnchor="middle"
+        style={{ fontFamily: 'Tajawal, sans-serif', fontSize: 22, fontWeight: 300, fill: '#C9A96E', letterSpacing: 6, opacity: 0, animation: 'fadeInLogo 1s ease forwards 1.7s' }}>
+        زيا
+      </text>
+
+      {/* tagline */}
+      <text x="260" y="340" textAnchor="middle"
+        style={{ fontFamily: 'Tajawal, sans-serif', fontSize: 10, fontWeight: 400, fill: '#C9A96E', letterSpacing: 4, opacity: 0, textTransform: 'uppercase', animation: 'fadeInLogo 1s ease forwards 2s' }}>
+        {isRtl ? 'شريكك التقني' : 'YOUR TECH PARTNER'}
+      </text>
+
+      {/* corner dots */}
+      {[[100,100],[420,100],[100,420],[420,420]].map(([x,y],i) => (
+        <circle key={i} cx={x} cy={y} r="2" fill="#C9A96E" opacity="0"
+          style={{ animation: `fadeInLogo 0.5s ease forwards ${1.2 + i*0.1}s` }}/>
+      ))}
+    </svg>
+
+    <style>{`
+      @keyframes drawLine {
+        to { stroke-dashoffset: 0; }
+      }
+      @keyframes drawRing {
+        to { stroke-dashoffset: 0; }
+      }
+      @keyframes fadeInLogo {
+        to { opacity: 1; }
+      }
+      @keyframes introOut {
+        0% { transform: translateY(0); opacity: 1; }
+        100% { transform: translateY(-100%); opacity: 0; }
+      }
+    `}</style>
+  </div>
+)}
       {/* NAV */}
       <nav style={css.navWrap}>
         <div style={css.navInner}>
