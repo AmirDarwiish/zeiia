@@ -691,9 +691,9 @@ WebkitBackdropFilter: 'blur(20px)',
               <h5 style={{ color: '#fff', fontWeight: 800, marginBottom: 24, fontSize: 15 }}>{isRtl ? 'التواصل الاجتماعي' : 'Social'}</h5>
               <div style={{ display: 'flex', gap: 12 }}>
                 {[
-                  { label: 'Fb', href: 'https://www.facebook.com/your-page', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12a10 10 0 10-11.5 9.87v-6.99h-2.7V12h2.7V9.8c0-2.66 1.58-4.13 4-4.13 1.16 0 2.38.2 2.38.2v2.62h-1.34c-1.32 0-1.73.82-1.73 1.66V12h2.94l-.47 2.88h-2.47v6.99A10 10 0 0022 12z"/></svg> },
+                  { label: 'Fb', href: 'https://www.facebook.com/profile.php?id=61587278585452', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12a10 10 0 10-11.5 9.87v-6.99h-2.7V12h2.7V9.8c0-2.66 1.58-4.13 4-4.13 1.16 0 2.38.2 2.38.2v2.62h-1.34c-1.32 0-1.73.82-1.73 1.66V12h2.94l-.47 2.88h-2.47v6.99A10 10 0 0022 12z"/></svg> },
                   { label: 'Li', href: 'https://www.linkedin.com/company/zeiia', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg> },
-                  { label: 'Tk', href: 'https://www.tiktok.com/@your-account', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12.75 2h3.5a5.75 5.75 0 005.75 5.75v3.5a9.25 9.25 0 01-5.75-1.96v6.96a6.5 6.5 0 11-6.5-6.5c.27 0 .53.02.79.06v3.58a3 3 0 103 3V2z"/></svg> },
+                  { label: 'Tk', href: 'https://www.tiktok.com/@zeiia98?_r=1&_t=ZS-94widaPqSA8', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12.75 2h3.5a5.75 5.75 0 005.75 5.75v3.5a9.25 9.25 0 01-5.75-1.96v6.96a6.5 6.5 0 11-6.5-6.5c.27 0 .53.02.79.06v3.58a3 3 0 103 3V2z"/></svg> },
                 ].map(({ label, icon, href }) => (
                   <a key={label} href={href} target="_blank" rel="noopener noreferrer"
                     style={{ width: 40, height: 40, borderRadius: '50%', background: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#94a3b8', transition: 'all .2s', textDecoration: 'none' }}
