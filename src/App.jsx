@@ -392,7 +392,7 @@ useEffect(() => {
         {/* النص السفلي الفخم */}
         <div style={{ 
           marginTop: '30px', fontFamily: "'Tajawal', sans-serif", color: '#D4AF37', 
-          fontSize: '15px', fontWeight: '900', letterSpacing: '4px', textTransform: 'uppercase',
+          fontSize: '15px', fontWeight: '900', textTransform: 'uppercase',
           opacity: 0, animation: 'fadeInLogo 1s ease forwards 2s'        }}>
           {isRtl ? 'شريكك التقني' : 'YOUR TECH PARTNER'}
         </div>
