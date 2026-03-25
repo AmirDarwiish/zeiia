@@ -180,9 +180,30 @@ const App = () => {
   const [lang, setLang] = useState('ar');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [formStatus, setFormStatus] = useState(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+const countries = [
+  { code: '+20',  iso: 'eg', name: 'مصر',       placeholder: '100 000 0000' },
+  { code: '+966', iso: 'sa', name: 'السعودية',   placeholder: '50 000 0000' },
+  { code: '+971', iso: 'ae', name: 'الإمارات',   placeholder: '50 000 0000' },
+  { code: '+965', iso: 'kw', name: 'الكويت',     placeholder: '9000 0000' },
+  { code: '+974', iso: 'qa', name: 'قطر',        placeholder: '3300 0000' },
+  { code: '+973', iso: 'bh', name: 'البحرين',    placeholder: '3600 0000' },
+  { code: '+968', iso: 'om', name: 'عُمان',      placeholder: '9200 0000' },
+  { code: '+962', iso: 'jo', name: 'الأردن',     placeholder: '79 000 0000' },
+  { code: '+961', iso: 'lb', name: 'لبنان',      placeholder: '70 000 000' },
+  { code: '+44',  iso: 'gb', name: 'UK',         placeholder: '7700 000000' },
+  { code: '+1',   iso: 'us', name: 'USA',        placeholder: '201 000 0000' },
+];
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', countryCode: '+20', message: '' });
   const [showIntro, setShowIntro] = useState(true);
 const [introLeave, setIntroLeave] = useState(false);
+useEffect(() => {
+  const handler = (e) => {
+    if (!e.target.closest('.country-dropdown')) setDropdownOpen(false);
+  };
+  document.addEventListener('mousedown', handler);
+  return () => document.removeEventListener('mousedown', handler);
+}, []);
 useEffect(() => {
   const t1 = setTimeout(() => setIntroLeave(true), 2800);
   const t2 = setTimeout(() => setShowIntro(false), 4000);
@@ -612,48 +633,78 @@ useEffect(() => {
                     </div>
                   </div>
                  <div>
+ 
+<div>
   <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 8 }}>
     {isRtl ? 'رقم الهاتف' : 'Phone Number'}
   </label>
   <div style={{ display: 'flex', gap: 8 }}>
-    <select
-      value={formData.countryCode}
-      onChange={e => setFormData({ ...formData, countryCode: e.target.value })}
-      style={{
-        padding: '12px 8px', borderRadius: 12,
-        border: '1.5px solid #e2e8f0', background: '#f8fafc',
-        fontSize: 14, fontFamily: 'Tajawal, sans-serif', outline: 'none',
-        cursor: 'pointer', flexShrink: 0,
-      }}
-      onFocus={e => e.target.style.borderColor = '#C9A96E'}
-      onBlur={e => e.target.style.borderColor = '#e2e8f0'}
-    >
-      {[
-        { code: '+20', flag: '🇪🇬', name: 'مصر' },
-        { code: '+966', flag: '🇸🇦', name: 'السعودية' },
-        { code: '+971', flag: '🇦🇪', name: 'الإمارات' },
-        { code: '+965', flag: '🇰🇼', name: 'الكويت' },
-        { code: '+974', flag: '🇶🇦', name: 'قطر' },
-        { code: '+973', flag: '🇧🇭', name: 'البحرين' },
-        { code: '+968', flag: '🇴🇲', name: 'عُمان' },
-        { code: '+962', flag: '🇯🇴', name: 'الأردن' },
-        { code: '+961', flag: '🇱🇧', name: 'لبنان' },
-        { code: '+44', flag: '🇬🇧', name: 'UK' },
-        { code: '+1', flag: '🇺🇸', name: 'USA' },
-      ].map(c => (
-        <option key={c.code} value={c.code}>{c.flag} {c.code}</option>
-      ))}
-    </select>
+
+    {/* Custom Country Dropdown */}
+    <div className="country-dropdown" style={{ position: 'relative', flexShrink: 0 }}>
+      <div
+        onClick={() => setDropdownOpen(!dropdownOpen)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          padding: '12px 10px', borderRadius: 12, minWidth: 110,
+          border: '1.5px solid #e2e8f0', background: '#f8fafc',
+          cursor: 'pointer', fontSize: 14, fontFamily: 'Tajawal, sans-serif',
+          userSelect: 'none',
+        }}
+      >
+        <img
+          src={`https://flagcdn.com/w20/${countries.find(c => c.code === formData.countryCode)?.iso}.png`}
+          width="20" height="14"
+          style={{ borderRadius: 2, objectFit: 'cover', flexShrink: 0 }}
+        />
+        <span style={{ color: '#0f172a', fontWeight: 600 }}>{formData.countryCode}</span>
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ marginInlineStart: 'auto', color: '#94a3b8', transform: dropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>
+          <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </div>
+
+      {dropdownOpen && (
+        <div style={{
+          position: 'absolute', top: '110%', left: 0,
+          background: '#fff', border: '1.5px solid #e2e8f0',
+          borderRadius: 12, boxShadow: '0 8px 32px rgba(0,0,0,.12)',
+          zIndex: 100, maxHeight: 220, overflowY: 'auto',
+          minWidth: 170,
+        }}>
+          {countries.map(c => (
+            <div
+              key={c.code}
+              onClick={() => { setFormData({ ...formData, countryCode: c.code }); setDropdownOpen(false); }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                padding: '10px 14px', cursor: 'pointer', fontSize: 13,
+                fontFamily: 'Tajawal, sans-serif',
+                background: formData.countryCode === c.code ? '#F5EDD9' : 'transparent',
+                color: formData.countryCode === c.code ? '#C9A96E' : '#334155',
+                transition: 'background .15s',
+              }}
+              onMouseEnter={e => { if (formData.countryCode !== c.code) e.currentTarget.style.background = '#f8fafc'; }}
+              onMouseLeave={e => { if (formData.countryCode !== c.code) e.currentTarget.style.background = 'transparent'; }}
+            >
+              <img
+                src={`https://flagcdn.com/w20/${c.iso}.png`}
+                width="20" height="14"
+                style={{ borderRadius: 2, objectFit: 'cover', flexShrink: 0 }}
+              />
+              <span style={{ fontWeight: 600, color: '#64748b', minWidth: 38 }}>{c.code}</span>
+              <span>{c.name}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+
+    {/* Phone Input */}
     <input
-      required
-      type="tel"
-      dir="ltr"
-      placeholder="100 000 0000"
+      required type="tel" dir="ltr"
+placeholder={countries.find(c => c.code === formData.countryCode)?.placeholder || '000 000 0000'}
       value={formData.phone}
-      onChange={e => {
-        const val = e.target.value;
-        if (/^[0-9\s]*$/.test(val)) setFormData({ ...formData, phone: val });
-      }}
+      onChange={e => { const val = e.target.value; if (/^[0-9\s]*$/.test(val)) setFormData({ ...formData, phone: val }); }}
       style={{
         flex: 1, padding: '12px 16px', borderRadius: 12,
         border: '1.5px solid #e2e8f0', background: '#f8fafc',
@@ -664,6 +715,7 @@ useEffect(() => {
       onBlur={e => e.target.style.borderColor = '#e2e8f0'}
     />
   </div>
+</div>
 </div>
                   <div>
                     <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 8 }}>{t.contact.formMsg}</label>
