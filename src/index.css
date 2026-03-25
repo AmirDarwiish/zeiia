@@ -93,4 +93,64 @@ body {
 * {
   -webkit-text-size-adjust: 100%;
 }
+/* ── Fonts ── */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800;900&display=swap');
 
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'Cairo', 'Tajawal', sans-serif; }
+
+/* ── Keyframes ── */
+@keyframes ping        { 75%, 100% { transform: scale(2); opacity: 0; } }
+@keyframes blob        { 0%   { transform: translate(0,0) scale(1); }
+                         33%  { transform: translate(30px,-50px) scale(1.1); }
+                         66%  { transform: translate(-20px,20px) scale(0.9); }
+                         100% { transform: translate(0,0) scale(1); } }
+@keyframes orbit       { from { transform: rotate(0deg)   translateX(180px) rotate(0deg);    }
+                         to   { transform: rotate(360deg) translateX(180px) rotate(-360deg); } }
+@keyframes orbit2      { from { transform: rotate(180deg) translateX(150px) rotate(-180deg); }
+                         to   { transform: rotate(540deg) translateX(150px) rotate(-540deg); } }
+
+/* ── Animation classes ── */
+.animate-blob  { animation: blob   7s  infinite; }
+.orb1          { animation: orbit  8s  linear infinite; }
+.orb2          { animation: orbit2 12s linear infinite; }
+
+/* ── Section reveal ── */
+.section-animate {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.65s ease, transform 0.65s ease;
+}
+.section-animate.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Responsive grid helpers ── */
+@media (max-width: 900px) {
+  .hero-grid,
+  .why-grid,
+  .contact-grid {
+    grid-template-columns: 1fr !important;
+    gap: 40px !important;
+  }
+  .hero-illustration { display: flex !important; }
+  .process-line      { display: none; }
+}
+
+/* ── Nav responsive ── */
+@media (max-width: 768px) {
+  .desktop-nav { display: none !important; }
+  .mobile-nav  { display: flex !important; }
+}
+@media (min-width: 769px) {
+  .mobile-nav { display: none !important; }
+}
+/* إخفاء الخط الأفقي في الموبايل لأن الخطوات ستكون عمودية */
+@media (max-width: 1024px) {
+  .process-line-desktop {
+    display: none !important;
+  }
+}
