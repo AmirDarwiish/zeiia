@@ -11,7 +11,7 @@ import useReveal from '../hooks/useReveal';
 import countries from '../constants/countries';
 
 /* ─────────────────────────────────────────────
-   GLASS TOKENS  (ضبطهم من هنا بسهولة)
+   GLASS TOKENS
 ───────────────────────────────────────────── */
 const glass = {
   light: {
@@ -26,7 +26,7 @@ const glass = {
     blur:   'blur(24px)',
     shadow: '0 16px 48px rgba(201,169,110,0.13), inset 0 1px 0 rgba(255,255,255,0.6)',
   },
-  dark: {                                    // للـ dark sections
+  dark: {
     bg:     'rgba(255,255,255,0.06)',
     border: '1px solid rgba(255,255,255,0.12)',
     blur:   'blur(20px)',
@@ -46,11 +46,11 @@ const GlassBox = React.forwardRef(({ children, variant = 'light', style = {}, ..
     <div
       ref={ref}
       style={{
-        background:    g.bg,
-        backdropFilter: g.blur,
+        background:           g.bg,
+        backdropFilter:       g.blur,
         WebkitBackdropFilter: g.blur,
-        border:        g.border,
-        boxShadow:     g.shadow,
+        border:               g.border,
+        boxShadow:            g.shadow,
         ...style,
       }}
       {...rest}
@@ -61,7 +61,7 @@ const GlassBox = React.forwardRef(({ children, variant = 'light', style = {}, ..
 });
 
 /* ══════════════════════════════════════════════════════
-   LIQUID GLASS HOOK — iOS 26 squish/spring effect
+   LIQUID GLASS HOOK
 ══════════════════════════════════════════════════════ */
 const useLiquidGlass = ({ stiffness = 280, damping = 18, pressScale = 0.055 } = {}) => {
   const ref = React.useRef(null);
@@ -74,13 +74,14 @@ const useLiquidGlass = ({ stiffness = 280, damping = 18, pressScale = 0.055 } = 
     let velX = 0, velY = 0;
     let targetX = 1, targetY = 1;
     let originX = '50%', originY = '50%';
-    let pressing = false;
+    let pressing  = false;
     let rafId;
+    let startY    = 0;
+    let didScroll = false;
 
     const spring = (cur, tgt, vel) => {
       const force = -stiffness * (cur - tgt) - damping * vel;
-      const acc   = force / 1;
-      const nVel  = vel + acc * 0.016;
+      const nVel  = vel + (force / 1) * 0.016;
       const nPos  = cur + nVel * 0.016;
       return { pos: nPos, vel: nVel };
     };
@@ -99,10 +100,18 @@ const useLiquidGlass = ({ stiffness = 280, damping = 18, pressScale = 0.055 } = 
         && Math.abs(velX) < 0.0005 && Math.abs(velY) < 0.0005;
 
       if (!done) rafId = requestAnimationFrame(animate);
-      else { scaleX = 1; scaleY = 1; el.style.transform = 'none'; el.style.transformOrigin = '50% 50%'; }
+      else {
+        scaleX = 1; scaleY = 1;
+        el.style.transform      = 'none';
+        el.style.transformOrigin = '50% 50%';
+      }
     };
 
     const onPress = e => {
+      if (e.touches) {
+        startY    = e.touches[0].clientY;
+        didScroll = false;
+      }
       pressing = true;
       const r  = el.getBoundingClientRect();
       const cx = e.touches ? e.touches[0].clientX : e.clientX;
@@ -115,10 +124,19 @@ const useLiquidGlass = ({ stiffness = 280, damping = 18, pressScale = 0.055 } = 
       targetY  = 1 - pressScale * (py < 0.5 ? (1 - py) : py);
       cancelAnimationFrame(rafId);
       rafId = requestAnimationFrame(animate);
-      e.preventDefault();
     };
 
-    const onRelease = () => {
+    const onTouchMove = e => {
+      if (Math.abs(e.touches[0].clientY - startY) > 8) {
+        didScroll = true;
+        pressing  = false;
+        targetX   = 1; targetY = 1;
+        cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(animate);
+      }
+    };
+
+    const onRelease = e => {
       if (!pressing) return;
       pressing = false;
       targetX  = 1; targetY = 1;
@@ -126,10 +144,16 @@ const useLiquidGlass = ({ stiffness = 280, damping = 18, pressScale = 0.055 } = 
       velY += (1 - scaleY) * 4;
       cancelAnimationFrame(rafId);
       rafId = requestAnimationFrame(animate);
+
+      // ← trigger click manually on touch if user didn't scroll
+      if (e?.type === 'touchend' && !didScroll) {
+        el.click();
+      }
     };
 
-    el.addEventListener('mousedown',  onPress,   { passive: false });
-    el.addEventListener('touchstart', onPress,   { passive: false });
+    el.addEventListener('mousedown',  onPress,     { passive: true });
+    el.addEventListener('touchstart', onPress,     { passive: true });
+    el.addEventListener('touchmove',  onTouchMove, { passive: true });
     window.addEventListener('mouseup',  onRelease);
     window.addEventListener('touchend', onRelease);
 
@@ -137,6 +161,7 @@ const useLiquidGlass = ({ stiffness = 280, damping = 18, pressScale = 0.055 } = 
       cancelAnimationFrame(rafId);
       el.removeEventListener('mousedown',  onPress);
       el.removeEventListener('touchstart', onPress);
+      el.removeEventListener('touchmove',  onTouchMove);
       window.removeEventListener('mouseup',  onRelease);
       window.removeEventListener('touchend', onRelease);
     };
@@ -163,6 +188,8 @@ const Btn = ({ href, to, primary, children, style = {} }) => {
     padding: '14px 32px', borderRadius: 14, fontWeight: 700,
     fontSize: 15, textDecoration: 'none', transition: 'opacity .2s',
     willChange: 'transform',
+    WebkitTapHighlightColor: 'transparent',
+    touchAction: 'manipulation',
     ...(primary ? {
       background: 'linear-gradient(135deg,#C9A96E,#A8864F)',
       color: '#fff',
@@ -184,7 +211,7 @@ const Btn = ({ href, to, primary, children, style = {} }) => {
   return <a ref={lgRef} href={href} style={shared} onMouseEnter={enter} onMouseLeave={leave}>{children}</a>;
 };
 
-/* ── Service Card with Liquid Glass ── */
+/* ── Service Card ── */
 const ServiceCard = ({ icon, title, desc }) => {
   const lgRef = useLiquidGlass({ pressScale: 0.04, stiffness: 260, damping: 16 });
   return (
@@ -192,16 +219,18 @@ const ServiceCard = ({ icon, title, desc }) => {
       ref={lgRef}
       variant="light"
       style={{
-        padding:'36px 28px', borderRadius:22,
-        transition:'box-shadow .35s, border-color .35s', cursor:'default',
-        willChange:'transform',
+        padding: '36px 28px', borderRadius: 22,
+        transition: 'box-shadow .35s, border-color .35s', cursor: 'default',
+        willChange: 'transform',
+        WebkitTapHighlightColor: 'transparent',
+        touchAction: 'manipulation',
       }}
       onMouseEnter={e => {
-        e.currentTarget.style.boxShadow = '0 24px 56px rgba(201,169,110,.18), inset 0 1px 0 rgba(255,255,255,.6)';
+        e.currentTarget.style.boxShadow   = '0 24px 56px rgba(201,169,110,.18), inset 0 1px 0 rgba(255,255,255,.6)';
         e.currentTarget.style.borderColor = 'rgba(201,169,110,.4)';
       }}
       onMouseLeave={e => {
-        e.currentTarget.style.boxShadow = glass.light.shadow;
+        e.currentTarget.style.boxShadow   = glass.light.shadow;
         e.currentTarget.style.borderColor = 'rgba(255,255,255,.35)';
       }}
     >
@@ -214,7 +243,7 @@ const ServiceCard = ({ icon, title, desc }) => {
   );
 };
 
-/* ── View All Button with Liquid Glass ── */
+/* ── View All Button ── */
 const ViewAllBtn = ({ isRtl }) => {
   const lgRef = useLiquidGlass({ pressScale: 0.05, stiffness: 300, damping: 18 });
   return (
@@ -228,11 +257,12 @@ const ViewAllBtn = ({ isRtl }) => {
         backdropFilter: glass.light.blur,
         WebkitBackdropFilter: glass.light.blur,
         border: '1px solid rgba(201,169,110,.3)',
-        color:'#0f172a',
-        textDecoration:'none', fontWeight:700, fontSize:14,
+        color:'#0f172a', textDecoration:'none', fontWeight:700, fontSize:14,
         transition:'background .25s, color .25s', whiteSpace:'nowrap',
         boxShadow: '0 4px 16px rgba(201,169,110,.12)',
         willChange: 'transform',
+        WebkitTapHighlightColor: 'transparent',
+        touchAction: 'manipulation',
       }}
       onMouseEnter={e => { e.currentTarget.style.background='rgba(201,169,110,.2)'; e.currentTarget.style.color='#A8864F'; }}
       onMouseLeave={e => { e.currentTarget.style.background=glass.light.bg; e.currentTarget.style.color='#0f172a'; }}
@@ -245,16 +275,17 @@ const ViewAllBtn = ({ isRtl }) => {
   );
 };
 
+/* ── Golden Dots ── */
 const GoldenDots = () => {
   const dots = useMemo(() => Array.from({ length: 35 }).map((_, i) => ({
     id: i,
-    coreSize:      Math.random() * 2 + 1.5,
-    hazeSize:      Math.random() * 10 + 8,
-    left:          `${Math.random() * 100}%`,
-    top:           `${Math.random() * 100}%`,
+    coreSize:        Math.random() * 2 + 1.5,
+    hazeSize:        Math.random() * 10 + 8,
+    left:            `${Math.random() * 100}%`,
+    top:             `${Math.random() * 100}%`,
     twinkleDuration: Math.random() * 2.5 + 1.5,
     initialOpacity:  Math.random() * 0.7 + 0.3,
-    glowShadow:    `0 0 ${Math.random() * 8 + 4}px rgba(201,169,110,0.9)`,
+    glowShadow:      `0 0 ${Math.random() * 8 + 4}px rgba(201,169,110,0.9)`,
   })), []);
 
   return (
@@ -283,7 +314,7 @@ const HeroTextPanel = () => {
   const lgRef = useLiquidGlass({ pressScale: 0.025, stiffness: 200, damping: 20 });
   return (
     <GlassBox ref={lgRef} variant="medium" className="section-animate"
-      style={{ padding:32, borderRadius:28, willChange:'transform', cursor:'default' }}>
+      style={{ padding:32, borderRadius:28, willChange:'transform', cursor:'default', touchAction:'manipulation', WebkitTapHighlightColor:'transparent' }}>
       <div style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'6px 14px', borderRadius:50, background:'rgba(201,169,110,.15)', backdropFilter:'blur(8px)', border:'1px solid rgba(201,169,110,.25)', color:'#C9A96E', fontSize:11, fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:28 }}>
         <span style={{ position:'relative', width:8, height:8 }}>
           <span style={{ position:'absolute', inset:0, borderRadius:'50%', background:'#C9A96E', opacity:.7, animation:'ping 1.5s cubic-bezier(0,0,.2,1) infinite' }} />
@@ -300,7 +331,9 @@ const HeroTextPanel = () => {
       <div style={{ display:'flex', gap:16, flexWrap:'wrap' }}>
         <Btn to="/contact" primary>
           {t.hero.cta1}
-          {isRtl ? <ArrowRight size={16} strokeWidth={1.5} style={{ transform:'rotate(180deg)' }} /> : <ChevronRight size={16} strokeWidth={1.5} />}
+          {isRtl
+            ? <ArrowRight size={16} strokeWidth={1.5} style={{ transform:'rotate(180deg)' }} />
+            : <ChevronRight size={16} strokeWidth={1.5} />}
         </Btn>
         <Btn to="/services">{t.hero.cta2}</Btn>
       </div>
@@ -312,7 +345,7 @@ const HeroIllustrationPanel = () => {
   const lgRef = useLiquidGlass({ pressScale: 0.02, stiffness: 180, damping: 22 });
   return (
     <GlassBox ref={lgRef} variant="medium" className="hero-illustration"
-      style={{ padding:24, borderRadius:28, willChange:'transform', cursor:'default' }}>
+      style={{ padding:24, borderRadius:28, willChange:'transform', cursor:'default', touchAction:'manipulation', WebkitTapHighlightColor:'transparent' }}>
       <HeroIllustration />
     </GlassBox>
   );
@@ -322,8 +355,8 @@ const HeroSection = () => {
   const { isRtl } = useLang();
   return (
     <section style={{
-    padding: '80px 24px 60px',
-    position: 'relative', overflow: 'hidden',
+      padding: '104px 24px 60px',
+      position: 'relative', overflow: 'hidden',
       background: 'linear-gradient(135deg, #f0e9d6 0%, #f8f5ee 40%, #eef2f8 100%)',
     }}>
       <div style={{ position:'absolute', top:'-10%', right: isRtl ? 'auto' : '-5%', left: isRtl ? '-5%' : 'auto', width:500, height:500, borderRadius:'50%', background:'radial-gradient(circle, rgba(201,169,110,.18) 0%, transparent 70%)', filter:'blur(60px)', zIndex:0 }} />
@@ -357,15 +390,12 @@ const ServicesPreview = () => {
       background: 'linear-gradient(160deg, #f8f5ee 0%, #eef2f8 60%, #f4f0e8 100%)',
       position: 'relative', overflow: 'hidden',
     }}>
-      {/* Blobs */}
       <div style={{ position:'absolute', top:'20%', left:'5%', width:300, height:300, borderRadius:'50%', background:'radial-gradient(circle, rgba(201,169,110,.12) 0%, transparent 70%)', filter:'blur(50px)', zIndex:0 }} />
       <div style={{ position:'absolute', bottom:'10%', right:'8%', width:250, height:250, borderRadius:'50%', background:'radial-gradient(circle, rgba(139,164,220,.10) 0%, transparent 70%)', filter:'blur(40px)', zIndex:0 }} />
-
       <GoldenDots />
 
       <div style={{ maxWidth:1280, margin:'0 auto', position:'relative', zIndex:1 }}>
         <div ref={ref} className="section-animate">
-
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', marginBottom:56, flexWrap:'wrap', gap:16 }}>
             <div>
               <Tag>{t.services.tag}</Tag>
@@ -373,7 +403,6 @@ const ServicesPreview = () => {
                 {t.services.title}
               </h2>
             </div>
-
             <ViewAllBtn isRtl={isRtl} />
           </div>
 
@@ -382,14 +411,13 @@ const ServicesPreview = () => {
               <ServiceCard key={i} icon={icons[i]} title={s.title} desc={s.desc} />
             ))}
           </div>
-
         </div>
       </div>
     </section>
   );
 };
 
-/* ── Process Step card with Liquid Glass ── */
+/* ── Process Step ── */
 const ProcessStep = ({ step, icon, index }) => {
   const circleRef = useLiquidGlass({ pressScale: 0.06, stiffness: 320, damping: 20 });
   const cardRef   = useLiquidGlass({ pressScale: 0.035, stiffness: 240, damping: 16 });
@@ -418,13 +446,15 @@ const ProcessStep = ({ step, icon, index }) => {
           display:'flex', alignItems:'center', justifyContent:'center',
           marginBottom:32, position:'relative', zIndex:2,
           cursor:'pointer', willChange:'transform',
+          WebkitTapHighlightColor: 'transparent',
+          touchAction: 'manipulation',
         }}
       >
         <div style={{ position:'absolute', inset:4, borderRadius:'50%', border:'1px dashed rgba(201,169,110,.25)', animation:'spin 20s linear infinite' }} />
         {icon}
       </motion.div>
 
-      <GlassBox ref={cardRef} variant="dark" style={{ borderRadius:16, padding:'16px 20px', width:'100%', boxSizing:'border-box', cursor:'pointer', willChange:'transform' }}>
+      <GlassBox ref={cardRef} variant="dark" style={{ borderRadius:16, padding:'16px 20px', width:'100%', boxSizing:'border-box', cursor:'pointer', willChange:'transform', WebkitTapHighlightColor:'transparent', touchAction:'manipulation' }}>
         <h3 style={{ fontSize:19, fontWeight:800, marginBottom:10, color:'#fff', letterSpacing:'-0.01em' }}>{step.title}</h3>
         <p style={{ fontSize:14, color:'#94a3b8', lineHeight:1.8, maxWidth:260, margin:'0 auto' }}>{step.desc}</p>
       </GlassBox>
@@ -433,7 +463,7 @@ const ProcessStep = ({ step, icon, index }) => {
 };
 
 /* ══════════════════════════════════════════════════════
-   PROCESS  (Dark Glass)
+   PROCESS
 ══════════════════════════════════════════════════════ */
 const ProcessSection = () => {
   const { t, isRtl } = useLang();
@@ -451,10 +481,8 @@ const ProcessSection = () => {
       background:'linear-gradient(135deg,#0a1020 0%,#0f172a 60%,#121e35 100%)',
       overflow:'hidden', position:'relative',
     }}>
-      {/* Blobs داكنة */}
       <div style={{ position:'absolute', top:'-15%', left:'30%', width:600, height:600, borderRadius:'50%', background:'radial-gradient(circle, rgba(201,169,110,.07) 0%, transparent 65%)', filter:'blur(80px)', zIndex:0 }} />
       <div style={{ position:'absolute', bottom:'-10%', right:'10%', width:400, height:400, borderRadius:'50%', background:'radial-gradient(circle, rgba(80,110,200,.07) 0%, transparent 65%)', filter:'blur(60px)', zIndex:0 }} />
-
       <GoldenDots />
 
       <style>{`
@@ -474,8 +502,6 @@ const ProcessSection = () => {
       `}</style>
 
       <div style={{ maxWidth:1280, margin:'0 auto', position:'relative', zIndex:1 }}>
-
-        {/* Header */}
         <div style={{ textAlign:'center', maxWidth:600, margin:'0 auto 60px' }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, marginBottom:16 }}>
             <span style={{ width:30, height:1, background:'#C9A96E' }} />
@@ -488,8 +514,6 @@ const ProcessSection = () => {
         </div>
 
         <div className="process-grid-container">
-
-          {/* Energy Line Desktop */}
           <div className="process-line-desktop" style={{ position:'absolute', top:50, left:'12%', right:'12%', height:1, background:'linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent)', zIndex:0 }}>
             <motion.div
               animate={{ left: isRtl ? ['100%','0%'] : ['0%','100%'], opacity:[0,1,1,0] }}
@@ -498,7 +522,6 @@ const ProcessSection = () => {
             />
           </div>
 
-          {/* Energy Line Mobile */}
           <div className="process-line-mobile" style={{ position:'absolute', top:50, bottom:50, left:'50%', width:1, transform:'translateX(-50%)', background:'linear-gradient(180deg,transparent,rgba(255,255,255,.08),transparent)', zIndex:0 }}>
             <motion.div
               animate={{ top:['0%','100%'], opacity:[0,1,1,0] }}
@@ -511,7 +534,6 @@ const ProcessSection = () => {
             <ProcessStep key={i} step={step} icon={stepIcons[i]} index={i} />
           ))}
         </div>
-
       </div>
     </section>
   );
@@ -547,13 +569,12 @@ const QuickContactSection = () => {
     setFormStatus('sending');
     setTimeout(() => {
       setFormStatus('success');
-      setFormData({ name:'',email:'',phone:'',countryCode:'+20',message:'' });
+      setFormData({ name:'', email:'', phone:'', countryCode:'+20', message:'' });
     }, 1500);
   };
 
   const selectedCountry = countries.find(c => c.code === formData.countryCode);
 
-  /* Shared input style */
   const inputStyle = {
     width:'100%', padding:'16px 20px', borderRadius:16,
     border: glass.input.border,
@@ -563,28 +584,26 @@ const QuickContactSection = () => {
     fontSize:14, fontFamily:'Tajawal,sans-serif',
     outline:'none', transition:'all .2s', boxSizing:'border-box',
     color:'#0f172a',
+    touchAction: 'manipulation',
   };
-  const focusInput  = e => { e.target.style.borderColor='#C9A96E'; e.target.style.background='rgba(255,255,255,.55)'; e.target.style.boxShadow='0 0 0 4px rgba(201,169,110,.12)'; };
-  const blurInput   = e => { e.target.style.borderColor='rgba(255,255,255,.40)'; e.target.style.background=glass.input.bg; e.target.style.boxShadow='none'; };
+  const focusInput = e => { e.target.style.borderColor='#C9A96E'; e.target.style.background='rgba(255,255,255,.55)'; e.target.style.boxShadow='0 0 0 4px rgba(201,169,110,.12)'; };
+  const blurInput  = e => { e.target.style.borderColor='rgba(255,255,255,.40)'; e.target.style.background=glass.input.bg; e.target.style.boxShadow='none'; };
 
   const submitRef = useLiquidGlass({ pressScale: 0.04, stiffness: 300, damping: 18 });
 
- return (
+  return (
     <section style={{
       padding:'60px 24px',
       background:'linear-gradient(160deg,#f5edd9 0%,#eef2f8 50%,#f0e9d6 100%)',
       position:'relative', overflow:'hidden',
-    }}> 
-      {/* Blobs */}
+    }}>
       <div style={{ position:'absolute', top:'-10%', left:'20%', width:450, height:450, borderRadius:'50%', background:'radial-gradient(circle, rgba(201,169,110,.15) 0%, transparent 70%)', filter:'blur(60px)', zIndex:0 }} />
-      <div style={{ position:'absolute', bottom :'-10%', right:'15%', width:350, height:350, borderRadius:'50%', background:'radial-gradient(circle, rgba(139,164,220,.12) 0%, transparent 70%)', filter:'blur(50px)', zIndex:0 }} />
-
+      <div style={{ position:'absolute', bottom:'-10%', right:'15%', width:350, height:350, borderRadius:'50%', background:'radial-gradient(circle, rgba(139,164,220,.12) 0%, transparent 70%)', filter:'blur(50px)', zIndex:0 }} />
       <GoldenDots />
 
       <div style={{ maxWidth:840, margin:'0 auto', position:'relative', zIndex:1 }}>
         <div ref={ref} className="section-animate">
 
-          {/* Header */}
           <div style={{ textAlign:'center', marginBottom:48 }}>
             <Tag>{isRtl ? 'دعنا نتحدث' : "Let's Talk"}</Tag>
             <h2 style={{ fontSize:'clamp(28px,3vw,42px)', fontWeight:800, color:'#0f172a', marginBottom:16 }}>
@@ -595,9 +614,7 @@ const QuickContactSection = () => {
             </p>
           </div>
 
-          {/* Form Card — Glass */}
           <GlassBox variant="medium" style={{ padding:'clamp(32px,5vw,56px)', borderRadius:32 }}>
-
             {formStatus === 'success' ? (
               <div style={{ minHeight:280, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', textAlign:'center' }}>
                 <div style={{ width:80, height:80, borderRadius:'50%', background:'rgba(34,197,94,.15)', backdropFilter:'blur(8px)', border:'1px solid rgba(34,197,94,.3)', color:'#22c55e', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:24, boxShadow:'0 8px 24px rgba(34,197,94,.2)' }}>
@@ -621,25 +638,21 @@ const QuickContactSection = () => {
                       <input
                         required type={type} placeholder={placeholder} value={formData[key]}
                         onChange={e => onChange(e.target.value)}
-                        style={inputStyle}
-                        onFocus={focusInput} onBlur={blurInput}
+                        style={inputStyle} onFocus={focusInput} onBlur={blurInput}
                       />
                     </div>
                   ))}
                 </div>
 
-                {/* Phone */}
                 <div>
                   <label style={{ display:'block', fontSize:13, fontWeight:700, color:'#334155', marginBottom:8 }}>
                     {isRtl ? 'رقم الهاتف' : 'Phone Number'}
                   </label>
                   <div style={{ display:'flex', gap:12 }}>
-
-                    {/* Country Dropdown */}
                     <div className="country-dropdown" style={{ position:'relative', flexShrink:0 }}>
                       <div
                         onClick={() => setDropdownOpen(o => !o)}
-                        style={{ display:'flex', alignItems:'center', gap:8, padding:'16px 14px', borderRadius:16, minWidth:120, ...inputStyle, cursor:'pointer', userSelect:'none', width:'auto' }}
+                        style={{ display:'flex', alignItems:'center', gap:8, padding:'16px 14px', borderRadius:16, minWidth:120, ...inputStyle, cursor:'pointer', userSelect:'none', width:'auto', WebkitTapHighlightColor:'transparent', touchAction:'manipulation' }}
                       >
                         <img src={`https://flagcdn.com/w20/${selectedCountry?.iso}.png`} width="20" height="14" style={{ borderRadius:2, objectFit:'cover', flexShrink:0 }} />
                         <span style={{ color:'#0f172a', fontWeight:600 }}>{formData.countryCode}</span>
@@ -654,7 +667,7 @@ const QuickContactSection = () => {
                             <div
                               key={c.code}
                               onClick={() => { setFormData(p=>({...p,countryCode:c.code})); setDropdownOpen(false); }}
-                              style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 14px', cursor:'pointer', fontSize:13, fontFamily:'Tajawal,sans-serif', background: formData.countryCode===c.code ? 'rgba(201,169,110,.18)' : 'transparent', color: formData.countryCode===c.code ? '#C9A96E' : '#334155', transition:'background .2s' }}
+                              style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 14px', cursor:'pointer', fontSize:13, fontFamily:'Tajawal,sans-serif', background: formData.countryCode===c.code ? 'rgba(201,169,110,.18)' : 'transparent', color: formData.countryCode===c.code ? '#C9A96E' : '#334155', transition:'background .2s', WebkitTapHighlightColor:'transparent', touchAction:'manipulation' }}
                               onMouseEnter={e => { if (formData.countryCode!==c.code) e.currentTarget.style.background='rgba(201,169,110,.08)'; }}
                               onMouseLeave={e => { if (formData.countryCode!==c.code) e.currentTarget.style.background='transparent'; }}
                             >
@@ -672,13 +685,11 @@ const QuickContactSection = () => {
                       placeholder={selectedCountry?.placeholder || '000 000 0000'}
                       value={formData.phone}
                       onChange={e => { const v=e.target.value; if(/^[0-9\s]*$/.test(v)) setFormData(p=>({...p,phone:v})); }}
-                      style={inputStyle}
-                      onFocus={focusInput} onBlur={blurInput}
+                      style={inputStyle} onFocus={focusInput} onBlur={blurInput}
                     />
                   </div>
                 </div>
 
-                {/* Message */}
                 <div>
                   <label style={{ display:'block', fontSize:13, fontWeight:700, color:'#334155', marginBottom:8 }}>{t.contact.formMsg}</label>
                   <textarea
@@ -691,39 +702,37 @@ const QuickContactSection = () => {
                   />
                 </div>
 
-                {/* Submit */}
                 <button
                   ref={submitRef}
                   type="submit"
                   style={{
                     padding:'18px 24px',
-                    background: formStatus==='sending'
-                      ? 'rgba(100,116,139,.4)'
-                      : 'linear-gradient(135deg,#1e293b,#0f172a)',
+                    background: formStatus==='sending' ? 'rgba(100,116,139,.4)' : 'linear-gradient(135deg,#1e293b,#0f172a)',
                     backdropFilter: 'blur(8px)',
                     color:'#fff', borderRadius:16, fontWeight:800, fontSize:15,
                     border:'1px solid rgba(255,255,255,.12)',
-                    cursor: formStatus==='sending'?'wait':'pointer',
+                    cursor: formStatus==='sending' ? 'wait' : 'pointer',
                     fontFamily:'Tajawal,sans-serif',
                     display:'flex', alignItems:'center', justifyContent:'center', gap:8,
                     transition:'background .3s, box-shadow .3s',
                     boxShadow:'0 8px 24px rgba(15,23,42,.18)', marginTop:8,
                     willChange:'transform',
+                    WebkitTapHighlightColor: 'transparent',
+                    touchAction: 'manipulation',
                   }}
                   disabled={formStatus==='sending'}
                   onMouseEnter={e => { if(formStatus!=='sending'){ e.currentTarget.style.background='linear-gradient(135deg,#C9A96E,#A8864F)'; e.currentTarget.style.boxShadow='0 12px 32px rgba(201,169,110,.35)'; }}}
                   onMouseLeave={e => { if(formStatus!=='sending'){ e.currentTarget.style.background='linear-gradient(135deg,#1e293b,#0f172a)'; e.currentTarget.style.boxShadow='0 8px 24px rgba(15,23,42,.18)'; }}}
                 >
                   {formStatus==='sending'
-                    ? (isRtl?'جاري الإرسال...':'Sending...')
-                    : (isRtl?'إرسال طلب استشارة':'Send Consultation Request')}
+                    ? (isRtl ? 'جاري الإرسال...' : 'Sending...')
+                    : (isRtl ? 'إرسال طلب استشارة' : 'Send Consultation Request')}
                   {formStatus!=='sending' && <ArrowRight size={18} strokeWidth={1.5} style={{ transform:isRtl?'rotate(180deg)':'none' }} />}
                 </button>
 
               </form>
             )}
           </GlassBox>
-
         </div>
       </div>
     </section>
@@ -734,7 +743,6 @@ const QuickContactSection = () => {
    PAGE
 ══════════════════════════════════════════════════════ */
 const HomePage = () => (
-  
   <>
     <HeroSection />
     <ServicesPreview />
