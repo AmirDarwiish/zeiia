@@ -5,11 +5,13 @@ import { Section, Tag } from '../components/shared/index.jsx';
 import countries from '../constants/countries';
 import useReveal from '../hooks/useReveal';
 
+const API = 'https://localhost:7068';
+
 const ContactPage = () => {
   const { t, isRtl } = useLang();
   const ref           = useReveal();
 
-  const [formStatus,   setFormStatus]   = useState(null);   // null | 'sending' | 'success'
+  const [formStatus,   setFormStatus]   = useState(null); // null | 'sending' | 'success' | 'error'
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [formData,     setFormData]     = useState({
     name: '', email: '', phone: '', countryCode: '+20', message: '',
@@ -31,13 +33,32 @@ const ContactPage = () => {
       .catch(() => {});
   }, []);
 
-  const handleSubmit = e => {
+  // ── Submit ──
+  const handleSubmit = async e => {
     e.preventDefault();
     setFormStatus('sending');
-    setTimeout(() => {
-      setFormStatus('success');
-      setFormData({ name:'', email:'', phone:'', countryCode:'+20', message:'' });
-    }, 1500);
+
+    try {
+      const res = await fetch(`${API}/api/public/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName: formData.name,
+          email:    formData.email,
+          phone:    formData.countryCode + formData.phone.replace(/\s/g, ''),
+          message:  formData.message,
+        }),
+      });
+
+      if (res.ok) {
+        setFormStatus('success');
+        setFormData({ name: '', email: '', phone: '', countryCode: '+20', message: '' });
+      } else {
+        setFormStatus('error');
+      }
+    } catch {
+      setFormStatus('error');
+    }
   };
 
   const selectedCountry = countries.find(c => c.code === formData.countryCode);
@@ -53,12 +74,14 @@ const ContactPage = () => {
             <h2 style={{ fontSize: 'clamp(28px,3vw,42px)', fontWeight: 800, marginBottom: 16, lineHeight: 1.15 }}>
               {t.contact.title}
             </h2>
-            <p style={{ color: '#64748b', fontSize: 16, marginBottom: 40, lineHeight: 1.7 }}>{t.contact.sub}</p>
+            <p style={{ color: '#64748b', fontSize: 16, marginBottom: 40, lineHeight: 1.7 }}>
+              {t.contact.sub}
+            </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {[
-                { Icon: Mail,  label: isRtl ? 'راسلنا' : 'Email us',          value: 'sales@zeiia.com'  },
-                { Icon: Phone, label: isRtl ? 'اتصل / واتساب' : 'Call / WhatsApp', value: '+201207715484' },
+                { Icon: Mail,  label: isRtl ? 'راسلنا' : 'Email us',              value: 'sales@zeiia.com'  },
+                { Icon: Phone, label: isRtl ? 'اتصل / واتساب' : 'Call / WhatsApp', value: '+201207715484'   },
               ].map(({ Icon, label, value }) => (
                 <div
                   key={label}
@@ -80,6 +103,8 @@ const ContactPage = () => {
 
           {/* ── Right form ── */}
           <div style={{ background: '#fff', padding: '48px 40px', borderRadius: 28, border: '1px solid #f1f5f9', boxShadow: '0 32px 64px rgba(0,0,0,.08)' }}>
+
+            {/* ── Success ── */}
             {formStatus === 'success' ? (
               <div style={{ minHeight: 300, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
                 <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#f0fdf4', color: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
@@ -88,8 +113,16 @@ const ContactPage = () => {
                 <h3 style={{ fontSize: 24, fontWeight: 800, marginBottom: 8 }}>{t.contact.success}</h3>
                 <p style={{ color: '#64748b' }}>{t.contact.successSub}</p>
               </div>
+
             ) : (
               <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+                {/* Error message */}
+                {formStatus === 'error' && (
+                  <div style={{ padding: '12px 16px', borderRadius: 12, background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', fontSize: 14, fontWeight: 600 }}>
+                    {isRtl ? 'حصل خطأ، حاول تاني.' : 'Something went wrong, please try again.'}
+                  </div>
+                )}
 
                 {/* Name + Email */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
@@ -125,7 +158,7 @@ const ContactPage = () => {
                         onClick={() => setDropdownOpen(o => !o)}
                         style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 10px', borderRadius: 12, minWidth: 110, border: '1.5px solid #e2e8f0', background: '#f8fafc', cursor: 'pointer', fontSize: 14, fontFamily: 'Tajawal,sans-serif', userSelect: 'none' }}
                       >
-                        <img src={`https://flagcdn.com/w20/${selectedCountry?.iso}.png`} width="20" height="14" style={{ borderRadius: 2, objectFit: 'cover', flexShrink: 0 }} />
+                        <img src={`https://flagcdn.com/w20/${selectedCountry?.iso}.png`} width="20" height="14" style={{ borderRadius: 2, objectFit: 'cover', flexShrink: 0 }} alt="" />
                         <span style={{ color: '#0f172a', fontWeight: 600 }}>{formData.countryCode}</span>
                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ marginInlineStart: 'auto', color: '#94a3b8', transform: dropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>
                           <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -142,7 +175,7 @@ const ContactPage = () => {
                               onMouseEnter={e => { if (formData.countryCode !== c.code) e.currentTarget.style.background = '#f8fafc'; }}
                               onMouseLeave={e => { if (formData.countryCode !== c.code) e.currentTarget.style.background = 'transparent'; }}
                             >
-                              <img src={`https://flagcdn.com/w20/${c.iso}.png`} width="20" height="14" style={{ borderRadius: 2, objectFit: 'cover', flexShrink: 0 }} />
+                              <img src={`https://flagcdn.com/w20/${c.iso}.png`} width="20" height="14" style={{ borderRadius: 2, objectFit: 'cover', flexShrink: 0 }} alt="" />
                               <span style={{ fontWeight: 600, color: '#64748b', minWidth: 38 }}>{c.code}</span>
                               <span>{c.name}</span>
                             </div>
@@ -168,7 +201,8 @@ const ContactPage = () => {
                 <div>
                   <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 8 }}>{t.contact.formMsg}</label>
                   <textarea
-                    required rows={5} placeholder={isRtl ? 'اكتب رسالتك هنا...' : 'Tell us about your project...'}
+                    required rows={5}
+                    placeholder={isRtl ? 'اكتب رسالتك هنا...' : 'Tell us about your project...'}
                     value={formData.message}
                     onChange={e => setFormData(p => ({ ...p, message: e.target.value }))}
                     style={{ width: '100%', padding: '12px 16px', borderRadius: 12, border: '1.5px solid #e2e8f0', background: '#f8fafc', fontSize: 14, fontFamily: 'Tajawal,sans-serif', outline: 'none', resize: 'none', transition: 'border-color .2s', boxSizing: 'border-box' }}
@@ -180,13 +214,17 @@ const ContactPage = () => {
                 {/* Submit */}
                 <button
                   type="submit"
-                  style={{ padding: 16, background: formStatus === 'sending' ? '#64748b' : '#0f172a', color: '#fff', borderRadius: 14, fontWeight: 800, fontSize: 15, border: 'none', cursor: formStatus === 'sending' ? 'wait' : 'pointer', fontFamily: 'Tajawal,sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'background .2s', boxShadow: '0 8px 24px rgba(15,23,42,.15)' }}
                   disabled={formStatus === 'sending'}
+                  style={{ padding: 16, background: formStatus === 'sending' ? '#64748b' : '#0f172a', color: '#fff', borderRadius: 14, fontWeight: 800, fontSize: 15, border: 'none', cursor: formStatus === 'sending' ? 'wait' : 'pointer', fontFamily: 'Tajawal,sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'background .2s', boxShadow: '0 8px 24px rgba(15,23,42,.15)' }}
                   onMouseEnter={e => { if (formStatus !== 'sending') e.currentTarget.style.background = '#C9A96E'; }}
                   onMouseLeave={e => { if (formStatus !== 'sending') e.currentTarget.style.background = '#0f172a'; }}
                 >
-                  {formStatus === 'sending' ? (isRtl ? 'جاري الإرسال...' : 'Sending...') : t.contact.formBtn}
-                  {formStatus !== 'sending' && <ArrowRight size={18} style={{ transform: isRtl ? 'rotate(180deg)' : 'none' }} />}
+                  {formStatus === 'sending'
+                    ? (isRtl ? 'جاري الإرسال...' : 'Sending...')
+                    : t.contact.formBtn}
+                  {formStatus !== 'sending' && (
+                    <ArrowRight size={18} style={{ transform: isRtl ? 'rotate(180deg)' : 'none' }} />
+                  )}
                 </button>
 
               </form>

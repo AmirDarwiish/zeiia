@@ -13,6 +13,8 @@ import HomePage     from './pages/HomePage';
 import ServicesPage from './pages/ServicesPage';
 import WhyUsPage    from './pages/WhyUsPage';
 import ContactPage  from './pages/ContactPage';
+import DashboardLogin from './pages/dashboard/login'
+import Dashboard      from './pages/dashboard/index'
 
 import './index.css';   
 
@@ -100,11 +102,17 @@ const AppRoutes = () => {
    ───────────────────────────────────────────────────────────── */
 const App = () => (
   <Router>
-      <ScrollToTop /> 
+    <ScrollToTop />
     <LangProvider>
-      <AppRoutes />
+      <Routes>
+        {/* الداشبورد — من غير Navbar/Footer */}
+        <Route path="/dashboard/login" element={<DashboardLogin />} />
+        <Route path="/dashboard"       element={<Dashboard />} />
+
+        {/* باقي الموقع — مع Navbar/Footer */}
+        <Route path="/*" element={<AppRoutes />} />
+      </Routes>
     </LangProvider>
   </Router>
 );
-
 export default App;
