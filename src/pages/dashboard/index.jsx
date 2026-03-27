@@ -27,15 +27,15 @@ const STATUS_OPTIONS = [
   { id:6, key:'Lost',       label:'خسرنا' },
   { id:7, key:'Cold',       label:'بارد' },
 ]
+// خلينا القيم أرقام (تأكد إنها مطابقة للأرقام في الـ C# Enum عندك)
 const INTERACTION_TYPES = [
-  { value:'GeneralNote', label:'ملاحظة عامة' },
-  { value:'Call',        label:'مكالمة' },
-  { value:'Email',       label:'إيميل' },
-  { value:'WhatsApp',    label:'واتساب' },
-  { value:'Meeting',     label:'اجتماع' },
-  { value:'Complaint',   label:'شكوى' },
+  { value: 0, label: 'ملاحظة عامة' },
+  { value: 1, label: 'مكالمة' },
+  { value: 2, label: 'إيميل' },
+  { value: 3, label: 'واتساب' },
+  { value: 4, label: 'اجتماع' },
+  { value: 5, label: 'شكوى' },
 ]
-
 /* ════════════════════════════════
    HELPERS
 ════════════════════════════════ */
@@ -366,7 +366,7 @@ function AssignModal({ lead, onClose, onSuccess }) {
 ════════════════════════════════ */
 function NoteModal({ lead, onClose, onSuccess }) {
   const [note, setNote]       = useState('')
-  const [type, setType]       = useState('GeneralNote')
+  const [type, setType]       = useState(0) // <-- تم التعديل لرقم 0
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState('')
 
@@ -376,7 +376,7 @@ function NoteModal({ lead, onClose, onSuccess }) {
     try {
       const res = await fetch(`${API_BASE_URL}/api/leads/${lead.id}/notes`, {
         method:'POST', headers:authHeaders(), credentials:'include',
-        body:JSON.stringify({ note, interactionType:type }),
+        body:JSON.stringify({ note, interactionType: type }), // type هنا رقم
       })
       if (!res.ok) throw new Error(`خطأ ${res.status}`)
       onSuccess()
@@ -388,7 +388,8 @@ function NoteModal({ lead, onClose, onSuccess }) {
     <Modal title={`إضافة ملاحظة: ${lead.fullName}`} onClose={onClose}>
       <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
         <div><label style={lbl}>نوع التفاعل</label>
-          <select value={type} onChange={e => setType(e.target.value)} style={sel}>
+          {/* تم إضافة parseInt لتحويل القيمة المختارة لرقم */}
+          <select value={type} onChange={e => setType(parseInt(e.target.value))} style={sel}>
             {INTERACTION_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
           </select>
         </div>
@@ -405,7 +406,6 @@ function NoteModal({ lead, onClose, onSuccess }) {
     </Modal>
   )
 }
-
 /* ════════════════════════════════
    TASK MODAL
 ════════════════════════════════ */
