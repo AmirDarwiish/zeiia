@@ -1,22 +1,20 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { createPortal } from 'react-dom' // تم إضافة هذا السطر
 import API_BASE_URL from '../../config'
 
 const PAGE_SIZE = 15
 
 const BADGES = {
-  New:         { bg: 'rgba(56,189,248,.15)',   color: '#38bdf8', label: 'جديد' },
-  Contacted:   { bg: 'rgba(167,139,250,.15)',  color: '#a78bfa', label: 'تم التواصل' },
+  New:        { bg: 'rgba(56,189,248,.15)',   color: '#38bdf8', label: 'جديد' },
+  Contacted:  { bg: 'rgba(167,139,250,.15)',  color: '#a78bfa', label: 'تم التواصل' },
   Interested: { bg: 'rgba(201,169,110,.18)',  color: '#C9A96E', label: 'مهتم' },
-  FollowUp:    { bg: 'rgba(251,191,36,.15)',   color: '#fbbf24', label: 'متابعة' },
-  Converted:   { bg: 'rgba(52,211,153,.15)',   color: '#34d399', label: 'تم التحويل' },
-  Lost:        { bg: 'rgba(248,113,113,.15)',  color: '#f87171', label: 'خسرنا' },
-  Cold:        { bg: 'rgba(148,163,184,.15)',  color: '#94a3b8', label: 'بارد' },
+  FollowUp:   { bg: 'rgba(251,191,36,.15)',   color: '#fbbf24', label: 'متابعة' },
+  Converted:  { bg: 'rgba(52,211,153,.15)',   color: '#34d399', label: 'تم التحويل' },
+  Lost:       { bg: 'rgba(248,113,113,.15)',  color: '#f87171', label: 'خسرنا' },
+  Cold:       { bg: 'rgba(148,163,184,.15)',  color: '#94a3b8', label: 'بارد' },
 }
 
 const STATUS_LIST = Object.entries(BADGES).map(([k, v]) => ({ value: k, label: v.label }))
 
-/* ─── Map numeric status (from API) → string key ─── */
 const STATUS_NUM_MAP = {
   1: 'New',
   2: 'Contacted',
@@ -33,18 +31,16 @@ const resolveStatus = s => {
   return s
 }
 
-/* ─── Status options with numeric IDs matching LeadStages table ─── */
 const STATUS_OPTIONS = [
-  { id: 1, key: 'New',         label: 'جديد' },
-  { id: 2, key: 'Contacted',   label: 'تم التواصل' },
+  { id: 1, key: 'New',        label: 'جديد' },
+  { id: 2, key: 'Contacted',  label: 'تم التواصل' },
   { id: 3, key: 'Interested', label: 'مهتم' },
-  { id: 4, key: 'FollowUp',    label: 'متابعة' },
-  { id: 5, key: 'Converted',   label: 'تم التحويل' },
-  { id: 6, key: 'Lost',        label: 'خسرنا' },
-  { id: 7, key: 'Cold',        label: 'بارد' },
+  { id: 4, key: 'FollowUp',   label: 'متابعة' },
+  { id: 5, key: 'Converted',  label: 'تم التحويل' },
+  { id: 6, key: 'Lost',       label: 'خسرنا' },
+  { id: 7, key: 'Cold',       label: 'بارد' },
 ]
 
-/* resolve current lead status → numeric id for the PUT payload */
 const resolveStatusId = s => {
   if (typeof s === 'number') return s
   if (typeof s === 'string' && /^\d+$/.test(s)) return parseInt(s)
@@ -55,7 +51,6 @@ const resolveStatusId = s => {
 const fmt  = d => d ? new Date(d).toLocaleDateString('ar-EG') : '—'
 const fmtI = (d, t) => d ? fmt(d) + (t ? ' · ' + t : '') : '—'
 
-/* ─── shared token helper ─── */
 const authHeaders = () => ({
   'Content-Type': 'application/json',
   Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -344,26 +339,43 @@ const IconLogout = () => (
   </svg>
 )
 
-/* ─── Action Menu ─── */
+/* ─── Action Menu — uses fixed positioning so dropdown escapes overflow:hidden ─── */
 function ActionMenu({ lead, onAction }) {
   const [open, setOpen] = useState(false)
-  const [coords, setCoords] = useState({ top: 0, left: 0 }) // تم إضافة الحالة لتخزين الإحداثيات
-  const ref = useRef()
+  const [menuStyle, setMenuStyle] = useState({})
+  const btnRef = useRef()
+  const menuRef = useRef()
 
+  /* Close on outside click */
   useEffect(() => {
-    const close = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    const close = e => {
+      if (
+        btnRef.current && !btnRef.current.contains(e.target) &&
+        menuRef.current && !menuRef.current.contains(e.target)
+      ) setOpen(false)
+    }
     document.addEventListener('mousedown', close)
     return () => document.removeEventListener('mousedown', close)
   }, [])
 
-  const toggleMenu = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    setCoords({
-      top: rect.bottom + window.scrollY,
-      left: rect.left + window.scrollX
-    });
-    setOpen(o => !o);
-  };
+  /* Recalculate position on open */
+  useEffect(() => {
+    if (!open || !btnRef.current) return
+    const rect = btnRef.current.getBoundingClientRect()
+    const menuHeight = 220 // approx height of 5 items
+    const spaceBelow = window.innerHeight - rect.bottom
+    const openUpward = spaceBelow < menuHeight + 10
+
+    setMenuStyle({
+      position: 'fixed',
+      zIndex: 9999,
+      left: rect.left,
+      ...(openUpward
+        ? { bottom: window.innerHeight - rect.top + 6 }
+        : { top: rect.bottom + 6 }),
+      minWidth: 180,
+    })
+  }, [open])
 
   const actions = [
     { key: 'status',   Icon: IconRefresh,  label: 'تغيير الحالة',  color: '#38bdf8' },
@@ -374,9 +386,10 @@ function ActionMenu({ lead, onAction }) {
   ]
 
   return (
-    <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
+    <>
       <button
-        onClick={toggleMenu}
+        ref={btnRef}
+        onClick={() => setOpen(o => !o)}
         style={{
           background: open ? 'rgba(201,169,110,.12)' : 'rgba(255,255,255,.04)',
           border: `1px solid ${open ? '#C9A96E' : '#334155'}`,
@@ -388,14 +401,19 @@ function ActionMenu({ lead, onAction }) {
       >
         إجراءات <IconChevron up={open} />
       </button>
-      {open && createPortal(
-        <div style={{
-          position: 'absolute', top: coords.top + 6, left: coords.left, zIndex: 9999,
-          background: '#0d1829', border: '1px solid #1e3a5f',
-          borderRadius: 10, minWidth: 180,
-          boxShadow: '0 16px 40px rgba(0,0,0,.6)', overflow: 'hidden',
-          direction: 'rtl',
-        }}>
+
+      {open && (
+        <div
+          ref={menuRef}
+          style={{
+            ...menuStyle,
+            background: '#0d1829',
+            border: '1px solid #1e3a5f',
+            borderRadius: 10,
+            boxShadow: '0 16px 40px rgba(0,0,0,.6)',
+            overflow: 'hidden',
+          }}
+        >
           {actions.map((a, i) => (
             <button key={a.key}
               onClick={() => { setOpen(false); onAction(a.key, lead) }}
@@ -424,10 +442,9 @@ function ActionMenu({ lead, onAction }) {
               {a.label}
             </button>
           ))}
-        </div>,
-        document.body
+        </div>
       )}
-    </div>
+    </>
   )
 }
 
@@ -472,7 +489,6 @@ function DetailsDrawer({ lead, onClose }) {
 
         {details && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            {/* Info */}
             <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 12, padding: 16 }}>
               <div style={{ fontSize: 11, color: '#C9A96E', fontWeight: 700, marginBottom: 12, letterSpacing: 1 }}>معلومات أساسية</div>
               {[
@@ -496,7 +512,6 @@ function DetailsDrawer({ lead, onClose }) {
               )}
             </div>
 
-            {/* Stage History */}
             {details.stageHistory?.length > 0 && (
               <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 12, padding: 16 }}>
                 <div style={{ fontSize: 11, color: '#C9A96E', fontWeight: 700, marginBottom: 12, letterSpacing: 1 }}>تاريخ المراحل</div>
@@ -509,7 +524,6 @@ function DetailsDrawer({ lead, onClose }) {
               </div>
             )}
 
-            {/* Activity Timeline */}
             {details.activityTimeline?.length > 0 && (
               <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 12, padding: 16 }}>
                 <div style={{ fontSize: 11, color: '#C9A96E', fontWeight: 700, marginBottom: 12, letterSpacing: 1 }}>آخر الأنشطة</div>
@@ -579,7 +593,7 @@ function useIsMobile() {
 }
 
 /* ═══════════════════════════════════════
-    MAIN DASHBOARD
+   MAIN DASHBOARD
 ═══════════════════════════════════════ */
 export default function Dashboard() {
   const [all, setAll]           = useState([])
@@ -594,13 +608,11 @@ export default function Dashboard() {
   const [lastUpdate, setLastUpdate] = useState('')
   const [toast, setToast]       = useState(null)
 
-  /* modal state */
-  const [modal, setModal]       = useState(null) // { type, lead }
-  const [drawer, setDrawer]     = useState(null) // lead
+  const [modal, setModal]       = useState(null)
+  const [drawer, setDrawer]     = useState(null)
 
   const isMobile = useIsMobile()
 
-  /* ─ fetch leads ─ */
   const handleLogout = async () => {
     try {
       await fetch(`${API_BASE_URL}/api/auth/logout`, {
@@ -644,7 +656,6 @@ export default function Dashboard() {
 
   useEffect(() => { loadLeads() }, [loadLeads])
 
-  /* ─ filters ─ */
   const applyFilters = useCallback(() => {
     const q = search.trim().toLowerCase()
     setFiltered(all.filter(l =>
@@ -657,13 +668,11 @@ export default function Dashboard() {
 
   useEffect(() => { applyFilters() }, [applyFilters])
 
-  /* ─ toast helper ─ */
   const showToast = (msg, ok = true) => {
     setToast({ msg, ok })
     setTimeout(() => setToast(null), 3000)
   }
 
-  /* ─ action handler ─ */
   const handleAction = (type, lead) => {
     if (type === 'details') { setDrawer(lead); return }
     setModal({ type, lead })
@@ -675,7 +684,6 @@ export default function Dashboard() {
     loadLeads()
   }
 
-  /* ─ export ─ */
   const exportCSV = () => {
     const h = ['الاسم', 'التليفون', 'الإيميل', 'المصدر', 'الحالة', 'تاريخ الإضافة', 'مسند لـ']
     const rows = filtered.map(l =>
@@ -689,9 +697,8 @@ export default function Dashboard() {
     a.click()
   }
 
-  /* ─ stats ─ */
   const stats = [
-    { label: 'إجمالي الليدز', val: all.length,                                                                        sub: 'كل السجلات' },
+    { label: 'إجمالي الليدز', val: all.length,                                                          sub: 'كل السجلات' },
     { label: 'جدد',           val: all.filter(l => resolveStatus(l.status) === 'New').length,            sub: 'New' },
     { label: 'مهتمين',        val: all.filter(l => resolveStatus(l.status) === 'Interested').length,     sub: 'Interested' },
     { label: 'تم التحويل',    val: all.filter(l => resolveStatus(l.status) === 'Converted').length,      sub: 'Converted' },
@@ -700,10 +707,9 @@ export default function Dashboard() {
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
   const slice      = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
-  /* ─ loading / error ─ */
   const wrapBase = { background: '#0f172a', minHeight: '100vh', padding: 24, direction: 'rtl', color: '#fff', fontFamily: "'Cairo',sans-serif" }
   if (loading) return <div style={{ ...wrapBase, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ color: '#C9A96E' }}>جاري تحميل البيانات...</span></div>
-  if (error)    return <div style={{ ...wrapBase, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ color: '#f87171' }}>{error}</span></div>
+  if (error)   return <div style={{ ...wrapBase, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ color: '#f87171' }}>{error}</span></div>
 
   const statsGridStyle = {
     display: 'grid',
@@ -712,14 +718,14 @@ export default function Dashboard() {
   }
 
   const COLS = [
-    { label: 'الاسم',            key: 'fullName',             width: 160 },
+    { label: 'الاسم',           key: 'fullName',              width: 160 },
     { label: 'التليفون',        key: 'phone',                 width: 130 },
-    { label: 'الحالة',           key: 'status',                width: 110 },
-    { label: 'المصدر',           key: 'source',                width: 110 },
-    { label: 'مسند لـ',          key: 'assignedTo',            width: 130 },
-    { label: 'آخر تفاعل',        key: 'lastInteraction',       width: 160 },
+    { label: 'الحالة',          key: 'status',                width: 110 },
+    { label: 'المصدر',          key: 'source',                width: 110 },
+    { label: 'مسند لـ',         key: 'assignedTo',            width: 130 },
+    { label: 'آخر تفاعل',       key: 'lastInteraction',       width: 160 },
     { label: 'الإيميل',         key: 'email',                 width: 180 },
-    { label: 'تاريخ الإضافة',    key: 'createdAt',             width: 120 },
+    { label: 'تاريخ الإضافة',   key: 'createdAt',             width: 120 },
     { label: 'إجراءات',         key: 'actions',               width: 130 },
   ]
 
@@ -800,92 +806,86 @@ export default function Dashboard() {
         </select>
       </div>
 
-      {/* Table */}
-      <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 14, overflow: 'hidden' }}>
+      {/* ─── Table Container — overflow: visible so dropdown escapes ─── */}
+      <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 14, overflow: 'visible' }}>
         {!isMobile ? (
-          /* ── Desktop: horizontal scroll table ── */
           <>
-          <style>{`
-          .leads-table-scroll::-webkit-scrollbar { height: 6px; }
-          .leads-table-scroll::-webkit-scrollbar-track { background: #0f172a; }
-          .leads-table-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-          .leads-table-scroll::-webkit-scrollbar-thumb:hover { background: #C9A96E; }
-        `}</style>
-        <div className="leads-table-scroll" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-            <table style={{ width: 'max-content', minWidth: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ background: '#0f172a' }}>
-                  {COLS.map(c => (
-                    <th key={c.key} style={{
-                      fontSize: 11, fontWeight: 700, color: '#94a3b8',
-                      textAlign: 'right', padding: '11px 14px',
-                      borderBottom: '1px solid #334155', whiteSpace: 'nowrap',
-                      minWidth: c.width,
-                    }}>{c.label}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {slice.length === 0
-                  ? <tr><td colSpan={COLS.length} style={{ padding: 40, textAlign: 'center', color: '#94a3b8' }}>لا توجد نتائج</td></tr>
-                  : slice.map(l => (
-                    <tr key={l.id}
-                      onMouseEnter={e => Array.from(e.currentTarget.cells).forEach(c => c.style.background = 'rgba(201,169,110,.04)')}
-                      onMouseLeave={e => Array.from(e.currentTarget.cells).forEach(c => c.style.background = '')}>
+            <style>{`
+              .leads-table-scroll::-webkit-scrollbar { height: 6px; }
+              .leads-table-scroll::-webkit-scrollbar-track { background: #0f172a; }
+              .leads-table-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+              .leads-table-scroll::-webkit-scrollbar-thumb:hover { background: #C9A96E; }
+            `}</style>
+            {/* overflow:hidden on this inner wrapper only — clips table but NOT the fixed dropdown */}
+            <div
+              className="leads-table-scroll"
+              style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: 14 }}
+            >
+              <table style={{ width: 'max-content', minWidth: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ background: '#0f172a' }}>
+                    {COLS.map(c => (
+                      <th key={c.key} style={{
+                        fontSize: 11, fontWeight: 700, color: '#94a3b8',
+                        textAlign: 'right', padding: '11px 14px',
+                        borderBottom: '1px solid #334155', whiteSpace: 'nowrap',
+                        minWidth: c.width,
+                      }}>{c.label}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {slice.length === 0
+                    ? <tr><td colSpan={COLS.length} style={{ padding: 40, textAlign: 'center', color: '#94a3b8' }}>لا توجد نتائج</td></tr>
+                    : slice.map(l => (
+                      <tr key={l.id}
+                        onMouseEnter={e => Array.from(e.currentTarget.cells).forEach(c => c.style.background = 'rgba(201,169,110,.04)')}
+                        onMouseLeave={e => Array.from(e.currentTarget.cells).forEach(c => c.style.background = '')}>
 
-                      {/* Name */}
-                      <td style={{ fontSize: 13, color: '#f1f5f9', textAlign: 'right', padding: '12px 14px', borderBottom: '1px solid rgba(51,65,85,.4)', whiteSpace: 'nowrap', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {l.hasComplaint && <span style={{ display: 'inline-block', width: 7, height: 7, borderRadius: '50%', background: '#f87171', marginLeft: 5, verticalAlign: 'middle' }} title="شكوى" />}
-                        {l.fullName || '—'}
-                      </td>
+                        <td style={{ fontSize: 13, color: '#f1f5f9', textAlign: 'right', padding: '12px 14px', borderBottom: '1px solid rgba(51,65,85,.4)', whiteSpace: 'nowrap', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {l.hasComplaint && <span style={{ display: 'inline-block', width: 7, height: 7, borderRadius: '50%', background: '#f87171', marginLeft: 5, verticalAlign: 'middle' }} title="شكوى" />}
+                          {l.fullName || '—'}
+                        </td>
 
-                      {/* Phone */}
-                      <td style={{ fontSize: 12, color: '#f1f5f9', textAlign: 'right', padding: '12px 14px', borderBottom: '1px solid rgba(51,65,85,.4)', fontFamily: 'monospace', letterSpacing: .5, whiteSpace: 'nowrap' }}>
-                        {l.phone || '—'}
-                      </td>
+                        <td style={{ fontSize: 12, color: '#f1f5f9', textAlign: 'right', padding: '12px 14px', borderBottom: '1px solid rgba(51,65,85,.4)', fontFamily: 'monospace', letterSpacing: .5, whiteSpace: 'nowrap' }}>
+                          {l.phone || '—'}
+                        </td>
 
-                      {/* Status */}
-                      <td style={{ padding: '12px 14px', borderBottom: '1px solid rgba(51,65,85,.4)', whiteSpace: 'nowrap' }}>
-                        <Badge status={resolveStatus(l.status)} />
-                      </td>
+                        <td style={{ padding: '12px 14px', borderBottom: '1px solid rgba(51,65,85,.4)', whiteSpace: 'nowrap' }}>
+                          <Badge status={resolveStatus(l.status)} />
+                        </td>
 
-                      {/* Source */}
-                      <td style={{ fontSize: 13, color: '#f1f5f9', textAlign: 'right', padding: '12px 14px', borderBottom: '1px solid rgba(51,65,85,.4)', whiteSpace: 'nowrap' }}>
-                        {l.source
-                          ? <span style={{ background: 'rgba(201,169,110,.08)', color: '#C9A96E', padding: '2px 8px', borderRadius: 6, fontSize: 11 }}>{l.source}</span>
-                          : '—'}
-                      </td>
+                        <td style={{ fontSize: 13, color: '#f1f5f9', textAlign: 'right', padding: '12px 14px', borderBottom: '1px solid rgba(51,65,85,.4)', whiteSpace: 'nowrap' }}>
+                          {l.source
+                            ? <span style={{ background: 'rgba(201,169,110,.08)', color: '#C9A96E', padding: '2px 8px', borderRadius: 6, fontSize: 11 }}>{l.source}</span>
+                            : '—'}
+                        </td>
 
-                      {/* Assigned */}
-                      <td style={{ fontSize: 12, color: '#94a3b8', textAlign: 'right', padding: '12px 14px', borderBottom: '1px solid rgba(51,65,85,.4)', whiteSpace: 'nowrap' }}>
-                        {l.assignedTo || <span style={{ color: '#475569', fontStyle: 'italic' }}>غير مسند</span>}
-                      </td>
+                        <td style={{ fontSize: 12, color: '#94a3b8', textAlign: 'right', padding: '12px 14px', borderBottom: '1px solid rgba(51,65,85,.4)', whiteSpace: 'nowrap' }}>
+                          {l.assignedTo || <span style={{ color: '#475569', fontStyle: 'italic' }}>غير مسند</span>}
+                        </td>
 
-                      {/* Last Interaction */}
-                      <td style={{ fontSize: 12, color: '#94a3b8', textAlign: 'right', padding: '12px 14px', borderBottom: '1px solid rgba(51,65,85,.4)', whiteSpace: 'nowrap' }}>
-                        {fmtI(l.lastInteractionDate, l.lastInteractionType)}
-                      </td>
+                        <td style={{ fontSize: 12, color: '#94a3b8', textAlign: 'right', padding: '12px 14px', borderBottom: '1px solid rgba(51,65,85,.4)', whiteSpace: 'nowrap' }}>
+                          {fmtI(l.lastInteractionDate, l.lastInteractionType)}
+                        </td>
 
-                      {/* Email */}
-                      <td style={{ fontSize: 12, color: '#64748b', textAlign: 'right', padding: '12px 14px', borderBottom: '1px solid rgba(51,65,85,.4)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {l.email || '—'}
-                      </td>
+                        <td style={{ fontSize: 12, color: '#64748b', textAlign: 'right', padding: '12px 14px', borderBottom: '1px solid rgba(51,65,85,.4)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {l.email || '—'}
+                        </td>
 
-                      {/* Created */}
-                      <td style={{ fontSize: 12, color: '#94a3b8', textAlign: 'right', padding: '12px 14px', borderBottom: '1px solid rgba(51,65,85,.4)', whiteSpace: 'nowrap' }}>
-                        {fmt(l.createdAt)}
-                      </td>
+                        <td style={{ fontSize: 12, color: '#94a3b8', textAlign: 'right', padding: '12px 14px', borderBottom: '1px solid rgba(51,65,85,.4)', whiteSpace: 'nowrap' }}>
+                          {fmt(l.createdAt)}
+                        </td>
 
-                      {/* Actions — last */}
-                      <td style={{ padding: '10px 14px', borderBottom: '1px solid rgba(51,65,85,.4)', whiteSpace: 'nowrap' }}>
-                        <ActionMenu lead={l} onAction={handleAction} />
-                      </td>
-                    </tr>
-                  ))
-                }
-              </tbody>
-            </table>
-          </div>
+                        <td style={{ padding: '10px 14px', borderBottom: '1px solid rgba(51,65,85,.4)', whiteSpace: 'nowrap' }}>
+                          <ActionMenu lead={l} onAction={handleAction} />
+                        </td>
+                      </tr>
+                    ))
+                  }
+                </tbody>
+              </table>
+            </div>
           </>
         ) : (
           /* ── Mobile cards ── */
@@ -904,9 +904,9 @@ export default function Dashboard() {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
                     {[
                       { label: 'التليفون', val: l.phone || '—' },
-                      { label: 'المصدر',    val: l.source || '—' },
+                      { label: 'المصدر',   val: l.source || '—' },
                       { label: 'مسند لـ',  val: l.assignedTo || 'غير مسند' },
-                      { label: 'التاريخ',   val: fmt(l.createdAt) },
+                      { label: 'التاريخ',  val: fmt(l.createdAt) },
                     ].map(f => (
                       <div key={f.label} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                         <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 600, letterSpacing: .5 }}>{f.label}</div>
