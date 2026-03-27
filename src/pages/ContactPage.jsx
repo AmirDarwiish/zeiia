@@ -5,7 +5,7 @@ import { Section, Tag } from '../components/shared/index.jsx';
 import countries from '../constants/countries';
 import useReveal from '../hooks/useReveal';
 
-const API = 'https://localhost:7068';
+const API = 'https://aura-crm.runasp.net';
 
 const ContactPage = () => {
   const { t, isRtl } = useLang();

@@ -564,15 +564,42 @@ const QuickContactSection = () => {
       .catch(() => {});
   }, []);
 
-  const handleSubmit = e => {
-    e.preventDefault();
-    setFormStatus('sending');
-    setTimeout(() => {
-      setFormStatus('success');
-      setFormData({ name:'', email:'', phone:'', countryCode:'+20', message:'' });
-    }, 1500);
-  };
+ const API = 'https://aura-crm.runasp.net';
 
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setFormStatus('sending');
+
+  try {
+    const res = await fetch(`${API}/api/public/contact`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        fullName: formData.name,
+        email: formData.email,
+        phone: formData.countryCode + formData.phone.replace(/\s/g, ''),
+        message: formData.message,
+      }),
+    });
+
+    if (res.ok) {
+      setFormStatus('success');
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        countryCode: '+20',
+        message: '',
+      });
+    } else {
+      setFormStatus('error');
+    }
+  } catch (err) {
+    setFormStatus('error');
+  }
+};
   const selectedCountry = countries.find(c => c.code === formData.countryCode);
 
   const inputStyle = {
