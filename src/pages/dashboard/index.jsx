@@ -95,8 +95,9 @@ const IconAdd      = () => <Ico><line x1="12" y1="5" x2="12" y2="19"/><line x1="
    MOBILE HOOK
 ════════════════════════════════ */
 function useIsMobile() {
-  const [mob, setMob] = useState(window.innerWidth < 640)
+  const [mob, setMob] = useState(typeof window !== 'undefined' ? window.innerWidth < 640 : false)
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const fn = () => setMob(window.innerWidth < 640)
     window.addEventListener('resize', fn)
     return () => window.removeEventListener('resize', fn)
@@ -707,13 +708,13 @@ function DetailsDrawer({ lead, onClose }) {
     ;(async () => {
       try {
         const [dr, nr, fhr] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/leads/${lead.id}/details`,           { headers:authHeaders(), credentials:'include' }),
-          fetch(`${API_BASE_URL}/api/leads/${lead.id}/notes`,             { headers:authHeaders(), credentials:'include' }),
+          fetch(`${API_BASE_URL}/api/leads/${lead.id}/details`,            { headers:authHeaders(), credentials:'include' }),
+          fetch(`${API_BASE_URL}/api/leads/${lead.id}/notes`,              { headers:authHeaders(), credentials:'include' }),
           fetch(`${API_BASE_URL}/api/leads/${lead.id}/follow-up-history`, { headers:authHeaders(), credentials:'include' }),
         ])
         if (dr.ok)  setDetails(await dr.json())
-        if (nr.ok)  setNotes(await nr.json())
-        if (fhr.ok) setFollowHistory(await fhr.json())
+        if (nr.ok)  { const nd = await nr.json(); setNotes(Array.isArray(nd) ? nd : (nd?.data || [])) }
+        if (fhr.ok) { const fd = await fhr.json(); setFollowHistory(Array.isArray(fd) ? fd : (fd?.data || [])) }
       } catch(e) { setError(e.message) }
       finally { setLoading(false) }
     })()
@@ -731,7 +732,7 @@ function DetailsDrawer({ lead, onClose }) {
     height:30, padding:'0 12px', borderRadius:6, border:'none', cursor:'pointer',
     fontSize:12, fontFamily:"'Cairo',sans-serif", transition:'all .15s',
     background: tab === id ? 'rgba(201,169,110,.15)' : 'transparent',
-    color:       tab === id ? '#C9A96E' : '#64748b',
+    color:        tab === id ? '#C9A96E' : '#64748b',
     borderBottom: tab === id ? '2px solid #C9A96E' : '2px solid transparent',
     fontWeight:   tab === id ? 700 : 400,
   })
@@ -759,7 +760,7 @@ function DetailsDrawer({ lead, onClose }) {
               <div style={{ background:'#1e293b', border:'1px solid #334155', borderRadius:12, padding:16 }}>
                 <div style={{ fontSize:11, color:'#C9A96E', fontWeight:700, marginBottom:12, letterSpacing:1 }}>معلومات أساسية</div>
                 {[
-                  { label:'الاسم',       val: details.leadInfo?.name },
+                  { label:'الاسم',      val: details.leadInfo?.name },
                   { label:'التليفون',    val: details.leadInfo?.phone },
                   { label:'الإيميل',     val: details.leadInfo?.email },
                   { label:'المصدر',      val: details.leadInfo?.source },
@@ -872,7 +873,8 @@ function KanbanBoard({ onAction }) {
       try {
         const res = await fetch(`${API_BASE_URL}/api/leads/pipeline`, { headers:authHeaders(), credentials:'include' })
         if (!res.ok) throw new Error(`خطأ ${res.status}`)
-        setPipeline(await res.json())
+        const data = await res.json()
+        setPipeline(Array.isArray(data) ? data : (data?.data || []))
       } catch(e) { setError(e.message) }
       finally { setLoading(false) }
     })()
@@ -899,7 +901,7 @@ function KanbanBoard({ onAction }) {
                   </div>
                 </div>
                 <div style={{ padding:8, display:'flex', flexDirection:'column', gap:8, maxHeight:500, overflowY:'auto' }}>
-                  {stage.leads.length === 0
+                  {(!stage.leads || stage.leads.length === 0)
                     ? <div style={{ color:'#475569', textAlign:'center', padding:'20px 0', fontSize:12 }}>لا يوجد</div>
                     : stage.leads.map(l => (
                       <div key={l.id} style={{ background:'#0f172a', border:'1px solid #334155', borderRadius:8, padding:'10px 12px' }}>
@@ -941,8 +943,8 @@ function FollowUpsView({ onAction }) {
           fetch(`${API_BASE_URL}/api/leads/follow-ups?today=true`,   { headers:authHeaders(), credentials:'include' }),
           fetch(`${API_BASE_URL}/api/leads/follow-ups?overdue=true`, { headers:authHeaders(), credentials:'include' }),
         ])
-        if (tr.ok) setToday(await tr.json())
-        if (or.ok) setOverdue(await or.json())
+        if (tr.ok) { const d = await tr.json(); setToday(Array.isArray(d) ? d : (d?.data || [])) }
+        if (or.ok) { const d = await or.json(); setOverdue(Array.isArray(d) ? d : (d?.data || [])) }
       } catch {}
       finally { setLoading(false) }
     })()
@@ -997,7 +999,10 @@ function ArchivedView({ onAction }) {
     ;(async () => {
       try {
         const res = await fetch(`${API_BASE_URL}/api/leads/archived`, { headers:authHeaders(), credentials:'include' })
-        if (res.ok) setLeads(await res.json())
+        if (res.ok) {
+           const data = await res.json()
+           setLeads(Array.isArray(data) ? data : (data?.data || []))
+        }
       } catch {}
       finally { setLoading(false) }
     })()
@@ -1082,7 +1087,10 @@ export default function Dashboard() {
   const loadTodayCount = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/leads/follow-ups?today=true`, { headers:authHeaders(), credentials:'include' })
-      if (res.ok) { const d = await res.json(); setTodayCount(d.length || 0) }
+      if (res.ok) { 
+        const d = await res.json(); 
+        setTodayCount(Array.isArray(d) ? d.length : (d?.data?.length || 0)) 
+      }
     } catch {}
   }, [])
 
@@ -1091,7 +1099,7 @@ export default function Dashboard() {
   const applyFilters = useCallback(() => {
     const q = search.trim().toLowerCase()
     setFiltered(all.filter(l =>
-      (!q || (l.fullName||'').toLowerCase().includes(q) || (l.phone||'').includes(q)) &&
+      (!q || (l.fullName||'').toLowerCase().includes(q) || (String(l.phone||'')).includes(q)) &&
       (!fStatus || resolveStatus(l.status) === fStatus) &&
       (!fSource || l.source === fSource)
     ))
@@ -1113,7 +1121,7 @@ export default function Dashboard() {
     const h    = ['الاسم','التليفون','الإيميل','المصدر','الحالة','تاريخ الإضافة','مسند لـ']
     const rows = filtered.map(l =>
       [l.fullName, l.phone, l.email, l.source, BADGES[resolveStatus(l.status)]?.label || l.status, fmt(l.createdAt), l.assignedTo || '']
-        .map(v => `"${(v||'').replace(/"/g,'""')}"`)
+        .map(v => `"${String(v||'').replace(/"/g,'""')}"`)
         .join(',')
     )
     const a = document.createElement('a')
@@ -1127,14 +1135,16 @@ export default function Dashboard() {
       if (!res.ok) throw new Error('فشل التصدير')
       const blob = await res.blob()
       const a = document.createElement('a')
-      a.href = URL.createObjectURL(blob)
+      const url = URL.createObjectURL(blob)
+      a.href = url
       a.download = `leads_${new Date().toLocaleDateString('ar-EG').replace(/\//g,'-')}.xlsx`
       a.click()
+      URL.revokeObjectURL(url)
     } catch(e) { showToast(e.message, false) }
   }
 
   const stats = [
-    { label:'إجمالي الليدز', val: all.length,                                                       sub:'كل السجلات' },
+    { label:'إجمالي الليدز', val: all.length,                                                      sub:'كل السجلات' },
     { label:'جدد',           val: all.filter(l => resolveStatus(l.status) === 'New').length,         sub:'New' },
     { label:'مهتمين',        val: all.filter(l => resolveStatus(l.status) === 'Interested').length,  sub:'Interested' },
     { label:'تم التحويل',    val: all.filter(l => resolveStatus(l.status) === 'Converted').length,   sub:'Converted' },
@@ -1161,10 +1171,10 @@ export default function Dashboard() {
   if (error)   return <div style={{ ...wrapBase, display:'flex', alignItems:'center', justifyContent:'center' }}><span style={{ color:'#f87171' }}>{error}</span></div>
 
   const viewTabs = [
-    { id:'table',    label:'القائمة',    Icon:IconList },
-    { id:'kanban',   label:'البيب لاين', Icon:IconKanban },
-    { id:'followups',label:`المتابعات${todayCount > 0 ? ` (${todayCount})` : ''}`, Icon:IconCalendar },
-    { id:'archived', label:'الأرشيف',   Icon:IconArchive },
+    { id:'table',     label:'القائمة',    Icon:IconList },
+    { id:'kanban',    label:'البيب لاين', Icon:IconKanban },
+    { id:'followups', label:`المتابعات${todayCount > 0 ? ` (${todayCount})` : ''}`, Icon:IconCalendar },
+    { id:'archived',  label:'الأرشيف',   Icon:IconArchive },
   ]
 
   return (
@@ -1201,9 +1211,9 @@ export default function Dashboard() {
           <button onClick={() => setShowCreate(true)} style={{ ...btnPrim, height:36, padding:'0 14px', fontSize:13, display:'flex', alignItems:'center', gap:6 }}>
             <IconAdd /> ليد جديد
           </button>
-          <button onClick={loadLeads}           style={{ ...btnSec, height:36, padding:'0 12px', fontSize:13 }}>تحديث</button>
-          <button onClick={exportCSV}           style={{ ...btnSec, height:36, padding:'0 12px', fontSize:13 }}>CSV</button>
-          <button onClick={exportExcel}         style={{ ...btnSec, height:36, padding:'0 12px', fontSize:13 }}>Excel</button>
+          <button onClick={loadLeads}            style={{ ...btnSec, height:36, padding:'0 12px', fontSize:13 }}>تحديث</button>
+          <button onClick={exportCSV}            style={{ ...btnSec, height:36, padding:'0 12px', fontSize:13 }}>CSV</button>
+          <button onClick={exportExcel}          style={{ ...btnSec, height:36, padding:'0 12px', fontSize:13 }}>Excel</button>
           <button onClick={() => setShowImport(true)} style={{ ...btnSec, height:36, padding:'0 12px', fontSize:13, display:'flex', alignItems:'center', gap:6 }}>
             <IconUpload /> استيراد
           </button>
@@ -1370,14 +1380,14 @@ export default function Dashboard() {
 
       {/* MODALS */}
       {showCreate               && <CreateLeadModal onClose={() => setShowCreate(false)} onSuccess={() => { setShowCreate(false); showToast('تم إضافة الليد'); loadLeads() }} />}
-      {modal?.type === 'status'  && <StatusModal   lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
-      {modal?.type === 'assign'  && <AssignModal   lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
-      {modal?.type === 'note'    && <NoteModal     lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
-      {modal?.type === 'task'    && <TaskModal     lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
-      {modal?.type === 'followup'&& <FollowUpModal lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
-      {modal?.type === 'edit'    && <EditModal     lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
-      {modal?.type === 'convert' && <ConvertModal  lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
-      {modal?.type === 'archive' && <ArchiveModal  lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
+      {modal?.type === 'status'  && <StatusModal    lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
+      {modal?.type === 'assign'  && <AssignModal    lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
+      {modal?.type === 'note'    && <NoteModal      lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
+      {modal?.type === 'task'    && <TaskModal      lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
+      {modal?.type === 'followup'&& <FollowUpModal  lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
+      {modal?.type === 'edit'    && <EditModal      lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
+      {modal?.type === 'convert' && <ConvertModal   lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
+      {modal?.type === 'archive' && <ArchiveModal   lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
       {drawer     && <DetailsDrawer lead={drawer} onClose={() => setDrawer(null)} />}
       {showImport && <ImportModal   onClose={() => setShowImport(false)} onSuccess={() => { setShowImport(false); showToast('تم الاستيراد بنجاح'); loadLeads() }} />}
     </div>
