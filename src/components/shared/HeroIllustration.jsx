@@ -4,46 +4,54 @@ import { useLang } from '../../context/LangContext';
 
 const SLIDES = [
   {
+    // Web Development - كود بتصميم عصري ومظلم
     image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=1080&auto=format&fit=crop',
     tag: { en: 'Web Development', ar: 'تطوير المواقع' },
-    title: { en: 'Web Development Solutions', ar: 'حلول تطوير المواقع' },
+    titleKey: 0,
   },
   {
+    // Mobile Apps - هاتف ذكي في بيئة عمل حديثة
     image: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?q=80&w=1080&auto=format&fit=crop',
     tag: { en: 'Mobile Apps', ar: 'تطبيقات الجوال' },
-    title: { en: 'Mobile Application Design', ar: 'تصميم تطبيقات الجوال' },
+    titleKey: 1,
   },
   {
+    // Custom Systems - سيرفرات أو شبكات معمارية
     image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=1080&auto=format&fit=crop',
     tag: { en: 'Custom Systems', ar: 'أنظمة مخصصة' },
-    title: { en: 'Fully Customized Systems', ar: 'أنظمة مخصصة بالكامل' },
-  },
+    title: { en: 'Fully Customized systems', ar: 'أنظمة مخصصة بالكامل' },  },
   {
+    // WordPress - مكتب احترافي بسيط
     image: 'https://images.unsplash.com/photo-1616469829581-73993eb86b02?q=80&w=1080&auto=format&fit=crop',
     tag: { en: 'WordPress', ar: 'ووردبريس' },
     title: { en: 'WordPress Development', ar: 'تطوير ووردبريس' },
   },
   {
+    // E-commerce - شاشة دفع وتسوق متطورة
     image: 'https://images.unsplash.com/photo-1556742044-3c52d6e88c62?q=80&w=1080&auto=format&fit=crop',
     tag: { en: 'E-commerce', ar: 'متاجر إلكترونية' },
     title: { en: 'E-commerce Solutions', ar: 'متاجر إلكترونية' },
   },
   {
+    // SEO - إحصائيات وبيانات بشكل فني
     image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1080&auto=format&fit=crop',
     tag: { en: 'SEO', ar: 'تحسين البحث' },
     title: { en: 'SEO Optimization', ar: 'تحسين محركات البحث' },
   },
   {
+    // UI/UX - ألوان وتصميم واجهات
     image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?q=80&w=1080&auto=format&fit=crop',
     tag: { en: 'UI/UX Design', ar: 'تصميم UI/UX' },
     title: { en: 'UI/UX Design', ar: 'تصميم UI/UX' },
   },
   {
+    // Shopify - مفهوم التسوق الحديث
     image: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?q=80&w=1080&auto=format&fit=crop',
     tag: { en: 'Shopify', ar: 'شوبيفاي' },
     title: { en: 'Shopify Stores', ar: 'متاجر Shopify' },
   },
 ];
+
 // إعدادات الأنيميشن الذكي (بيتحرك يمين أو شمال حسب الضغطة)
 const variants = {
   enter: (direction) => ({

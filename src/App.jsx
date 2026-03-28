@@ -1,4 +1,9 @@
 import { useState, useEffect } from 'react';
+// ملاحظة: الـ index.jsx محتاج تضيف فيه السطرين دول:
+// import { useNavigate } from 'react-router-dom'   ← في الأعلى مع الـ imports
+// const navigate = useNavigate()                   ← جوه الـ Dashboard function
+// وفي الهيدر جنب زرار تسجيل الخروج:
+// <button onClick={() => navigate('/dashboard/users')} style={{...btnSec, height:36, padding:'0 12px', fontSize:13}}>المستخدمين</button>
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { LangProvider, useLang } from './context/LangContext';
 import ScrollToTop from './components/ScrollToTop';
@@ -15,15 +20,15 @@ import WhyUsPage    from './pages/WhyUsPage';
 import ContactPage  from './pages/ContactPage';
 import DashboardLogin from './pages/dashboard/login'
 import Dashboard      from './pages/dashboard/index'
+import UsersPage      from './pages/dashboard/users'   // ← جديد
 
-import './index.css';   
+import './index.css';
 
 /* ─────────────────────────────────────────────────────────────
    Layout wrapper — Navbar + page content + Footer
-   ───────────────────────────────────────────────────────────── */
+───────────────────────────────────────────────────────────── */
 const Layout = ({ children }) => {
   const { isRtl } = useLang();
-
   return (
     <div
       dir={isRtl ? 'rtl' : 'ltr'}
@@ -32,8 +37,6 @@ const Layout = ({ children }) => {
       <Navbar />
       <main>{children}</main>
       <Footer />
-
-      {/* WhatsApp floating button */}
       <WhatsAppBtn />
     </div>
   );
@@ -41,7 +44,7 @@ const Layout = ({ children }) => {
 
 /* ─────────────────────────────────────────────────────────────
    WhatsApp floating button
-   ───────────────────────────────────────────────────────────── */
+───────────────────────────────────────────────────────────── */
 const WhatsAppBtn = () => {
   const { isRtl } = useLang();
   return (
@@ -68,8 +71,8 @@ const WhatsAppBtn = () => {
 };
 
 /* ─────────────────────────────────────────────────────────────
-   App routes — rendered inside LangProvider
-   ───────────────────────────────────────────────────────────── */
+   App routes
+───────────────────────────────────────────────────────────── */
 const AppRoutes = () => {
   const [showIntro,  setShowIntro]  = useState(true);
   const [introLeave, setIntroLeave] = useState(false);
@@ -83,7 +86,6 @@ const AppRoutes = () => {
   return (
     <>
       {showIntro && <IntroScreen leaving={introLeave} />}
-
       <Layout>
         <Routes>
           <Route path="/"         element={<HomePage />}    />
@@ -97,9 +99,8 @@ const AppRoutes = () => {
 };
 
 /* ─────────────────────────────────────────────────────────────
-   Root — Router wraps everything, LangProvider inside Router
-   (so Navbar can use <Link> which needs Router context)
-   ───────────────────────────────────────────────────────────── */
+   Root
+───────────────────────────────────────────────────────────── */
 const App = () => (
   <Router>
     <ScrollToTop />
@@ -108,6 +109,7 @@ const App = () => (
         {/* الداشبورد — من غير Navbar/Footer */}
         <Route path="/dashboard/login" element={<DashboardLogin />} />
         <Route path="/dashboard"       element={<Dashboard />} />
+        <Route path="/dashboard/users" element={<UsersPage />} />  {/* ← جديد */}
 
         {/* باقي الموقع — مع Navbar/Footer */}
         <Route path="/*" element={<AppRoutes />} />
@@ -115,4 +117,5 @@ const App = () => (
     </LangProvider>
   </Router>
 );
+
 export default App;

@@ -1,10 +1,13 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import API_BASE_URL from '../../config'
+import { useNavigate } from 'react-router-dom'  // في الأعلى
+
 
 /* ════════════════════════════════
    CONSTANTS
 ════════════════════════════════ */
 const PAGE_SIZE = 15
+
 
 const BADGES = {
   New:        { bg: 'rgba(56,189,248,.15)',   color: '#38bdf8', label: 'جديد' },
@@ -1065,6 +1068,7 @@ function ArchivedView({ onAction }) {
    MAIN DASHBOARD
 ════════════════════════════════════════════════════ */
 export default function Dashboard() {
+  const navigate = useNavigate() 
   const [all, setAll]               = useState([])
   const [filtered, setFiltered]     = useState([])
   const [search, setSearch]         = useState('')
@@ -1087,7 +1091,7 @@ export default function Dashboard() {
   const handleLogout = async () => {
     try { await fetch(`${API_BASE_URL}/api/auth/logout`, { method:'POST', headers:authHeaders(), credentials:'include' }) } catch {}
     localStorage.removeItem('token')
-    window.location.href = '/dashboard/login'
+    navigate('/dashboard/login')
   }
 
   const loadLeads = useCallback(async () => {
