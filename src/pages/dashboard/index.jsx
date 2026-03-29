@@ -1,13 +1,11 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import API_BASE_URL from '../../config'
-import { useNavigate } from 'react-router-dom'  // في الأعلى
-
+import { useNavigate } from 'react-router-dom'
 
 /* ════════════════════════════════
    CONSTANTS
 ════════════════════════════════ */
 const PAGE_SIZE = 15
-
 
 const BADGES = {
   New:        { bg: 'rgba(56,189,248,.15)',   color: '#38bdf8', label: 'جديد' },
@@ -30,7 +28,6 @@ const STATUS_OPTIONS = [
   { id:6, key:'Lost',       label:'خسرنا' },
   { id:7, key:'Cold',       label:'بارد' },
 ]
-// خلينا القيم أرقام (تأكد إنها مطابقة للأرقام في الـ C# Enum عندك)
 const INTERACTION_TYPES = [
   { value: 0, label: 'ملاحظة عامة' },
   { value: 1, label: 'مكالمة' },
@@ -39,6 +36,7 @@ const INTERACTION_TYPES = [
   { value: 4, label: 'اجتماع' },
   { value: 5, label: 'شكوى' },
 ]
+
 /* ════════════════════════════════
    HELPERS
 ════════════════════════════════ */
@@ -61,14 +59,24 @@ const authHeaders = () => ({
 })
 
 /* ════════════════════════════════
+   WHATSAPP ICON SVG
+════════════════════════════════ */
+const WaIcon = ({ size = 12 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="#25d366">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+    <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.126 1.533 5.857L.057 23.428a.5.5 0 00.609.61l5.627-1.476A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.857a9.857 9.857 0 01-5.028-1.374l-.36-.214-3.732.979.998-3.645-.235-.374A9.821 9.821 0 012.143 12C2.143 6.54 6.54 2.143 12 2.143c5.46 0 9.857 4.397 9.857 9.857 0 5.46-4.397 9.857-9.857 9.857z"/>
+  </svg>
+)
+
+/* ════════════════════════════════
    SHARED STYLES
 ════════════════════════════════ */
-const lbl      = { fontSize:12, color:'#94a3b8', fontWeight:600, display:'block', marginBottom:6 }
-const inp      = { width:'100%', boxSizing:'border-box', height:38, background:'#0f172a', border:'1px solid #334155', borderRadius:8, color:'#f1f5f9', fontSize:13, padding:'0 11px', fontFamily:"'Cairo',sans-serif", outline:'none' }
-const sel      = { ...inp, cursor:'pointer' }
-const btnPrim  = { height:38, padding:'0 20px', borderRadius:8, border:'none', background:'#C9A96E', color:'#0f172a', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:"'Cairo',sans-serif" }
-const btnSec   = { height:38, padding:'0 16px', borderRadius:8, border:'1px solid #334155', background:'transparent', color:'#94a3b8', fontSize:13, cursor:'pointer', fontFamily:"'Cairo',sans-serif" }
-const btnDanger= { height:38, padding:'0 16px', borderRadius:8, border:'1px solid rgba(248,113,113,.3)', background:'rgba(248,113,113,.08)', color:'#f87171', fontSize:13, cursor:'pointer', fontFamily:"'Cairo',sans-serif" }
+const lbl       = { fontSize:12, color:'#94a3b8', fontWeight:600, display:'block', marginBottom:6 }
+const inp       = { width:'100%', boxSizing:'border-box', height:38, background:'#0f172a', border:'1px solid #334155', borderRadius:8, color:'#f1f5f9', fontSize:13, padding:'0 11px', fontFamily:"'Cairo',sans-serif", outline:'none' }
+const sel       = { ...inp, cursor:'pointer' }
+const btnPrim   = { height:38, padding:'0 20px', borderRadius:8, border:'none', background:'#C9A96E', color:'#0f172a', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:"'Cairo',sans-serif" }
+const btnSec    = { height:38, padding:'0 16px', borderRadius:8, border:'1px solid #334155', background:'transparent', color:'#94a3b8', fontSize:13, cursor:'pointer', fontFamily:"'Cairo',sans-serif" }
+const btnDanger = { height:38, padding:'0 16px', borderRadius:8, border:'1px solid rgba(248,113,113,.3)', background:'rgba(248,113,113,.08)', color:'#f87171', fontSize:13, cursor:'pointer', fontFamily:"'Cairo',sans-serif" }
 
 /* ════════════════════════════════
    SVG ICONS
@@ -100,7 +108,7 @@ const IconAdd      = () => <Ico><line x1="12" y1="5" x2="12" y2="19"/><line x1="
 function useIsMobile() {
   const [mob, setMob] = useState(typeof window !== 'undefined' ? window.innerWidth < 640 : false)
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined') return
     const fn = () => setMob(window.innerWidth < 640)
     window.addEventListener('resize', fn)
     return () => window.removeEventListener('resize', fn)
@@ -116,7 +124,7 @@ const ErrBox = ({ msg }) => msg
   : null
 
 /* ════════════════════════════════
-   MODAL BACKDROP
+   MODAL
 ════════════════════════════════ */
 function Modal({ title, onClose, children, maxWidth = 420 }) {
   useEffect(() => {
@@ -131,7 +139,7 @@ function Modal({ title, onClose, children, maxWidth = 420 }) {
       <div style={{ background:'#1e293b', border:'1px solid #334155', borderRadius:16, width:'100%', maxWidth, padding:24, direction:'rtl', boxShadow:'0 25px 60px rgba(0,0,0,.5)', maxHeight:'90vh', overflowY:'auto' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
           <span style={{ fontSize:16, fontWeight:700, color:'#f1f5f9' }}>{title}</span>
-          <button onClick={onClose} style={{ background:'none', border:'none', color:'#94a3b8', fontSize:20, cursor:'pointer', lineHeight:1 }}>x</button>
+          <button onClick={onClose} style={{ background:'none', border:'none', color:'#94a3b8', fontSize:20, cursor:'pointer', lineHeight:1 }}>×</button>
         </div>
         {children}
       </div>
@@ -148,7 +156,7 @@ function Badge({ status }) {
 }
 
 /* ════════════════════════════════
-   ACTION MENU (Mobile Responsive)
+   ACTION MENU
 ════════════════════════════════ */
 function ActionMenu({ lead, onAction }) {
   const [open, setOpen]           = useState(false)
@@ -156,21 +164,15 @@ function ActionMenu({ lead, onAction }) {
   const btnRef  = useRef()
   const menuRef = useRef()
 
-  // 1. التحكم في قفل القائمة عند الضغط خارجها أو عند السحب
   useEffect(() => {
     const close = e => {
       if (btnRef.current && !btnRef.current.contains(e.target) &&
           menuRef.current && !menuRef.current.contains(e.target)) setOpen(false)
     }
     const closeOnScroll = () => setOpen(false)
-
-    // ضفنا touchstart لدعم أقوى على الموبايل
     document.addEventListener('mousedown', close)
     document.addEventListener('touchstart', close)
-    
-    // لو القائمة مفتوحة واليوزر عمل سكرول، تقفل تلقائي عشان متفضلش طايرة
     if (open) window.addEventListener('scroll', closeOnScroll, { passive: true })
-
     return () => {
       document.removeEventListener('mousedown', close)
       document.removeEventListener('touchstart', close)
@@ -178,27 +180,14 @@ function ActionMenu({ lead, onAction }) {
     }
   }, [open])
 
-  // 2. حساب الموضع الذكي (Smart Positioning)
   useEffect(() => {
     if (!open || !btnRef.current) return
-    const rect   = btnRef.current.getBoundingClientRect()
-    
-    // حساب المساحة الرأسية (فوق أو تحت)
+    const rect = btnRef.current.getBoundingClientRect()
     const openUp = window.innerHeight - rect.bottom < 320
-    
-    // حساب المساحة الأفقية (عشان متخرجش برا الشاشة)
-    const menuWidth = 195;
-    let safeLeft = rect.left;
-
-    // لو القائمة هتخرج من يمين الشاشة
-    if (safeLeft + menuWidth > window.innerWidth) {
-      safeLeft = window.innerWidth - menuWidth - 16; // 16px هامش أمان
-    }
-    // لو هتخرج من شمال الشاشة
-    if (safeLeft < 16) {
-      safeLeft = 16;
-    }
-
+    const menuWidth = 195
+    let safeLeft = rect.left
+    if (safeLeft + menuWidth > window.innerWidth) safeLeft = window.innerWidth - menuWidth - 16
+    if (safeLeft < 16) safeLeft = 16
     setMenuStyle({
       position:'fixed', zIndex:9999, left: safeLeft,
       ...(openUp ? { bottom: window.innerHeight - rect.top + 6 } : { top: rect.bottom + 6 }),
@@ -249,6 +238,7 @@ function ActionMenu({ lead, onAction }) {
     </>
   )
 }
+
 /* ════════════════════════════════
    CREATE LEAD MODAL
 ════════════════════════════════ */
@@ -398,7 +388,7 @@ function AssignModal({ lead, onClose, onSuccess }) {
 ════════════════════════════════ */
 function NoteModal({ lead, onClose, onSuccess }) {
   const [note, setNote]       = useState('')
-  const [type, setType]       = useState(0) // <-- تم التعديل لرقم 0
+  const [type, setType]       = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState('')
 
@@ -408,7 +398,7 @@ function NoteModal({ lead, onClose, onSuccess }) {
     try {
       const res = await fetch(`${API_BASE_URL}/api/leads/${lead.id}/notes`, {
         method:'POST', headers:authHeaders(), credentials:'include',
-        body:JSON.stringify({ note, interactionType: type }), // type هنا رقم
+        body:JSON.stringify({ note, interactionType: type }),
       })
       if (!res.ok) throw new Error(`خطأ ${res.status}`)
       onSuccess()
@@ -420,7 +410,6 @@ function NoteModal({ lead, onClose, onSuccess }) {
     <Modal title={`إضافة ملاحظة: ${lead.fullName}`} onClose={onClose}>
       <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
         <div><label style={lbl}>نوع التفاعل</label>
-          {/* تم إضافة parseInt لتحويل القيمة المختارة لرقم */}
           <select value={type} onChange={e => setType(parseInt(e.target.value))} style={sel}>
             {INTERACTION_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
           </select>
@@ -438,6 +427,7 @@ function NoteModal({ lead, onClose, onSuccess }) {
     </Modal>
   )
 }
+
 /* ════════════════════════════════
    TASK MODAL
 ════════════════════════════════ */
@@ -705,7 +695,7 @@ function ImportModal({ onClose, onSuccess }) {
           style={{ border:`2px dashed ${file ? '#C9A96E' : '#334155'}`, borderRadius:10, padding:'28px 16px', textAlign:'center', cursor:'pointer', background: file ? 'rgba(201,169,110,.06)' : 'transparent', transition:'all .15s' }}
         >
           <input ref={fileRef} type="file" accept=".xlsx,.xls" style={{ display:'none' }} onChange={e => setFile(e.target.files[0])} />
-          <div style={{ fontSize:13, color: file ? '#C9A96E' : '#64748b' }}>{file ? `ok ${file.name}` : 'اضغط أو اسحب ملف Excel هنا'}</div>
+          <div style={{ fontSize:13, color: file ? '#C9A96E' : '#64748b' }}>{file ? `✓ ${file.name}` : 'اضغط أو اسحب ملف Excel هنا'}</div>
         </div>
         <ErrBox msg={error} />
         {result && (
@@ -726,22 +716,22 @@ function ImportModal({ onClose, onSuccess }) {
 }
 
 /* ════════════════════════════════
-   DETAILS DRAWER  (tabbed)
+   DETAILS DRAWER
 ════════════════════════════════ */
 function DetailsDrawer({ lead, onClose }) {
-  const [details, setDetails]         = useState(null)
-  const [notes, setNotes]             = useState([])
+  const [details, setDetails]             = useState(null)
+  const [notes, setNotes]                 = useState([])
   const [followHistory, setFollowHistory] = useState([])
-  const [loading, setLoading]         = useState(true)
-  const [error, setError]             = useState('')
-  const [tab, setTab]                 = useState('info')
+  const [loading, setLoading]             = useState(true)
+  const [error, setError]                 = useState('')
+  const [tab, setTab]                     = useState('info')
 
   useEffect(() => {
     ;(async () => {
       try {
         const [dr, nr, fhr] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/leads/${lead.id}/details`,            { headers:authHeaders(), credentials:'include' }),
-          fetch(`${API_BASE_URL}/api/leads/${lead.id}/notes`,              { headers:authHeaders(), credentials:'include' }),
+          fetch(`${API_BASE_URL}/api/leads/${lead.id}/details`,           { headers:authHeaders(), credentials:'include' }),
+          fetch(`${API_BASE_URL}/api/leads/${lead.id}/notes`,             { headers:authHeaders(), credentials:'include' }),
           fetch(`${API_BASE_URL}/api/leads/${lead.id}/follow-up-history`, { headers:authHeaders(), credentials:'include' }),
         ])
         if (dr.ok)  setDetails(await dr.json())
@@ -763,7 +753,7 @@ function DetailsDrawer({ lead, onClose }) {
   const tabBtn = id => ({
     height:30, padding:'0 12px', borderRadius:6, border:'none', cursor:'pointer',
     fontSize:12, fontFamily:"'Cairo',sans-serif", transition:'all .15s',
-    background: tab === id ? 'rgba(201,169,110,.15)' : 'transparent',
+    background:   tab === id ? 'rgba(201,169,110,.15)' : 'transparent',
     color:        tab === id ? '#C9A96E' : '#64748b',
     borderBottom: tab === id ? '2px solid #C9A96E' : '2px solid transparent',
     fontWeight:   tab === id ? 700 : 400,
@@ -776,7 +766,7 @@ function DetailsDrawer({ lead, onClose }) {
         <div style={{ padding:'16px 20px', borderBottom:'1px solid #334155', flexShrink:0 }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
             <span style={{ fontSize:17, fontWeight:800, color:'#C9A96E' }}>تفاصيل الليد</span>
-            <button onClick={onClose} style={{ background:'none', border:'none', color:'#94a3b8', fontSize:22, cursor:'pointer' }}>x</button>
+            <button onClick={onClose} style={{ background:'none', border:'none', color:'#94a3b8', fontSize:22, cursor:'pointer' }}>×</button>
           </div>
           <div style={{ display:'flex', gap:2, flexWrap:'wrap' }}>
             {tabs.map(t => <button key={t.id} onClick={() => setTab(t.id)} style={tabBtn(t.id)}>{t.label}</button>)}
@@ -1014,8 +1004,8 @@ function FollowUpsView({ onAction }) {
 
   return (
     <>
-      <Section title="متابعات اليوم"   leads={today}  color="#C9A96E" empty="لا توجد متابعات اليوم" />
-      <Section title="متابعات متأخرة"  leads={overdue} color="#f87171" empty="لا توجد متابعات متأخرة" />
+      <Section title="متابعات اليوم"  leads={today}   color="#C9A96E" empty="لا توجد متابعات اليوم" />
+      <Section title="متابعات متأخرة" leads={overdue}  color="#f87171" empty="لا توجد متابعات متأخرة" />
     </>
   )
 }
@@ -1031,10 +1021,7 @@ function ArchivedView({ onAction }) {
     ;(async () => {
       try {
         const res = await fetch(`${API_BASE_URL}/api/leads/archived`, { headers:authHeaders(), credentials:'include' })
-        if (res.ok) {
-           const data = await res.json()
-           setLeads(Array.isArray(data) ? data : (data?.data || []))
-        }
+        if (res.ok) { const data = await res.json(); setLeads(Array.isArray(data) ? data : (data?.data || [])) }
       } catch {}
       finally { setLoading(false) }
     })()
@@ -1068,7 +1055,7 @@ function ArchivedView({ onAction }) {
    MAIN DASHBOARD
 ════════════════════════════════════════════════════ */
 export default function Dashboard() {
-  const navigate = useNavigate() 
+  const navigate = useNavigate()
   const [all, setAll]               = useState([])
   const [filtered, setFiltered]     = useState([])
   const [search, setSearch]         = useState('')
@@ -1102,9 +1089,9 @@ export default function Dashboard() {
       while (acc.length < total) {
         const res = await fetch(`${API_BASE_URL}/api/leads?pageNumber=${pg}&pageSize=${size}`, { headers:{ Authorization:`Bearer ${token}` }, credentials:'include' })
         if (!res.ok) throw new Error(res.status)
-        const json = await res.json()
-        const d    = json?.data || json
-        const items= d?.data || d || []
+        const json  = await res.json()
+        const d     = json?.data || json
+        const items = d?.data || d || []
         total = d?.totalCount ?? items.length
         acc   = [...acc, ...items]
         if (items.length < size) break
@@ -1120,10 +1107,7 @@ export default function Dashboard() {
   const loadTodayCount = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/leads/follow-ups?today=true`, { headers:authHeaders(), credentials:'include' })
-      if (res.ok) { 
-        const d = await res.json(); 
-        setTodayCount(Array.isArray(d) ? d.length : (d?.data?.length || 0)) 
-      }
+      if (res.ok) { const d = await res.json(); setTodayCount(Array.isArray(d) ? d.length : (d?.data?.length || 0)) }
     } catch {}
   }, [])
 
@@ -1167,8 +1151,8 @@ export default function Dashboard() {
       const res = await fetch(`${API_BASE_URL}/api/leads/export`, { headers:{ Authorization:`Bearer ${localStorage.getItem('token')}` }, credentials:'include' })
       if (!res.ok) throw new Error('فشل التصدير')
       const blob = await res.blob()
-      const a = document.createElement('a')
-      const url = URL.createObjectURL(blob)
+      const a    = document.createElement('a')
+      const url  = URL.createObjectURL(blob)
       a.href = url
       a.download = `leads_${new Date().toLocaleDateString('ar-EG').replace(/\//g,'-')}.xlsx`
       a.click()
@@ -1177,10 +1161,10 @@ export default function Dashboard() {
   }
 
   const stats = [
-    { label:'إجمالي الليدز', val: all.length,                                                      sub:'كل السجلات' },
-    { label:'جدد',           val: all.filter(l => resolveStatus(l.status) === 'New').length,         sub:'New' },
-    { label:'مهتمين',        val: all.filter(l => resolveStatus(l.status) === 'Interested').length,  sub:'Interested' },
-    { label:'تم التحويل',    val: all.filter(l => resolveStatus(l.status) === 'Converted').length,   sub:'Converted' },
+    { label:'إجمالي الليدز', val: all.length,                                                     sub:'كل السجلات' },
+    { label:'جدد',           val: all.filter(l => resolveStatus(l.status) === 'New').length,        sub:'New' },
+    { label:'مهتمين',        val: all.filter(l => resolveStatus(l.status) === 'Interested').length, sub:'Interested' },
+    { label:'تم التحويل',    val: all.filter(l => resolveStatus(l.status) === 'Converted').length,  sub:'Converted' },
   ]
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
@@ -1188,7 +1172,7 @@ export default function Dashboard() {
 
   const COLS = [
     { label:'الاسم',         key:'fullName',        width:160 },
-    { label:'التليفون',      key:'phone',           width:130 },
+    { label:'التليفون',      key:'phone',           width:150 },
     { label:'الحالة',        key:'status',          width:110 },
     { label:'المصدر',        key:'source',          width:110 },
     { label:'مسند لـ',       key:'assignedTo',      width:130 },
@@ -1210,6 +1194,16 @@ export default function Dashboard() {
     { id:'archived',  label:'الأرشيف',   Icon:IconArchive },
   ]
 
+  /* ── WhatsApp link helper ── */
+  const waHref = phone => `https://wa.me/${phone.replace(/\D/g,'')}`
+  const WaBtn  = ({ phone }) => phone ? (
+    <a href={waHref(phone)} target="_blank" rel="noopener noreferrer" title="تواصل عبر واتساب"
+      style={{ display:'flex', alignItems:'center', justifyContent:'center', width:22, height:22, borderRadius:6, background:'rgba(37,211,102,.12)', flexShrink:0, textDecoration:'none', transition:'all .15s' }}
+      onMouseEnter={e => { e.currentTarget.style.background='rgba(37,211,102,.3)'; e.currentTarget.style.transform='scale(1.12)' }}
+      onMouseLeave={e => { e.currentTarget.style.background='rgba(37,211,102,.12)'; e.currentTarget.style.transform='scale(1)' }}
+    ><WaIcon size={12} /></a>
+  ) : null
+
   return (
     <div style={wrapBase}>
       <style>{`
@@ -1219,6 +1213,7 @@ export default function Dashboard() {
         .leads-tbl::-webkit-scrollbar-thumb:hover{background:#C9A96E}
       `}</style>
 
+      {/* Toast */}
       {toast && (
         <div style={{ position:'fixed', top:20, left:'50%', transform:'translateX(-50%)', zIndex:2000,
           background: toast.ok ? 'rgba(52,211,153,.15)' : 'rgba(248,113,113,.15)',
@@ -1229,7 +1224,7 @@ export default function Dashboard() {
         }}>{toast.msg}</div>
       )}
 
-      {/* Header */}
+      {/* ── Header ── */}
       <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', flexWrap:'wrap', gap:12, marginBottom:22 }}>
         <div>
           <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
@@ -1240,42 +1235,42 @@ export default function Dashboard() {
           <div style={{ width:36, height:2, background:'#C9A96E', borderRadius:2, margin:'5px 0' }} />
           <div style={{ fontSize:12, color:'#94a3b8' }}>{lastUpdate}</div>
         </div>
+
         <div style={{ display:'flex', gap:8, alignItems:'center', flexWrap:'wrap' }}>
+          {/* ليد جديد */}
           <button onClick={() => setShowCreate(true)} style={{ ...btnPrim, height:36, padding:'0 14px', fontSize:13, display:'flex', alignItems:'center', gap:6 }}>
             <IconAdd /> ليد جديد
           </button>
-          <button onClick={loadLeads}            style={{ ...btnSec, height:36, padding:'0 12px', fontSize:13 }}>تحديث</button>
-          <button onClick={exportCSV}            style={{ ...btnSec, height:36, padding:'0 12px', fontSize:13 }}>CSV</button>
-          <button onClick={exportExcel}          style={{ ...btnSec, height:36, padding:'0 12px', fontSize:13 }}>Excel</button>
+          {/* تحديث */}
+          <button onClick={loadLeads} style={{ ...btnSec, height:36, padding:'0 12px', fontSize:13 }}>تحديث</button>
+          {/* CSV */}
+          <button onClick={exportCSV} style={{ ...btnSec, height:36, padding:'0 12px', fontSize:13 }}>CSV</button>
+          {/* Excel */}
+          <button onClick={exportExcel} style={{ ...btnSec, height:36, padding:'0 12px', fontSize:13 }}>Excel</button>
+          {/* استيراد */}
           <button onClick={() => setShowImport(true)} style={{ ...btnSec, height:36, padding:'0 12px', fontSize:13, display:'flex', alignItems:'center', gap:6 }}>
             <IconUpload /> استيراد
-       
-          <button
-  onClick={() => navigate('/dashboard/users')}
-  title="إدارة المستخدمين"
-  style={{
-    height:36, width:36, borderRadius:8, border:'1px solid #334155',
-    background:'rgba(167,139,250,.08)', color:'#a78bfa', cursor:'pointer',
-    display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0,
-  }}
-  onMouseEnter={e => { e.currentTarget.style.background='rgba(167,139,250,.2)'; e.currentTarget.style.borderColor='#a78bfa' }}
-  onMouseLeave={e => { e.currentTarget.style.background='rgba(167,139,250,.08)'; e.currentTarget.style.borderColor='#334155' }}
->
-  <IconUser />
-  
-</button>
           </button>
-          <button onClick={handleLogout} title="تسجيل الخروج"
-            style={{ height:36, width:36, borderRadius:8, border:'1px solid #334155', background:'rgba(248,113,113,.08)', color:'#f87171', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}
+          {/* المستخدمين */}
+          <button
+            onClick={() => navigate('/dashboard/users')}
+            title="إدارة المستخدمين"
+            style={{ height:36, width:36, borderRadius:8, border:'1px solid #334155', background:'rgba(167,139,250,.08)', color:'#a78bfa', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, transition:'all .15s' }}
+            onMouseEnter={e => { e.currentTarget.style.background='rgba(167,139,250,.2)'; e.currentTarget.style.borderColor='#a78bfa' }}
+            onMouseLeave={e => { e.currentTarget.style.background='rgba(167,139,250,.08)'; e.currentTarget.style.borderColor='#334155' }}
+          ><IconUser /></button>
+          {/* تسجيل الخروج */}
+          <button
+            onClick={handleLogout}
+            title="تسجيل الخروج"
+            style={{ height:36, width:36, borderRadius:8, border:'1px solid #334155', background:'rgba(248,113,113,.08)', color:'#f87171', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, transition:'all .15s' }}
             onMouseEnter={e => { e.currentTarget.style.background='rgba(248,113,113,.2)'; e.currentTarget.style.borderColor='#f87171' }}
             onMouseLeave={e => { e.currentTarget.style.background='rgba(248,113,113,.08)'; e.currentTarget.style.borderColor='#334155' }}
           ><IconLogout /></button>
-        
         </div>
-
       </div>
 
-      {/* Stats */}
+      {/* ── Stats ── */}
       <div style={{ display:'grid', gridTemplateColumns: isMobile ? 'repeat(2,minmax(0,1fr))' : 'repeat(4,minmax(0,1fr))', gap:10, marginBottom:20 }}>
         {stats.map(s => (
           <div key={s.label} style={{ background:'#1e293b', border:'1px solid #334155', borderRadius:12, padding:'14px 16px', position:'relative', overflow:'hidden' }}>
@@ -1287,7 +1282,7 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* View Tabs */}
+      {/* ── View Tabs ── */}
       <div style={{ display:'flex', gap:4, marginBottom:16, flexWrap:'wrap' }}>
         {viewTabs.map(t => (
           <button key={t.id} onClick={() => setView(t.id)} style={{
@@ -1308,6 +1303,7 @@ export default function Dashboard() {
       {view === 'followups' && <FollowUpsView onAction={handleAction} />}
       {view === 'archived'  && <ArchivedView  onAction={handleAction} />}
 
+      {/* ── Table View ── */}
       {view === 'table' && (
         <>
           {/* Filters */}
@@ -1329,6 +1325,8 @@ export default function Dashboard() {
           </div>
 
           <div style={{ background:'#1e293b', border:'1px solid #334155', borderRadius:14, overflow:'visible' }}>
+
+            {/* Desktop Table */}
             {!isMobile ? (
               <div className="leads-tbl" style={{ overflowX:'auto', WebkitOverflowScrolling:'touch', borderRadius:14 }}>
                 <table style={{ width:'max-content', minWidth:'100%', borderCollapse:'collapse' }}>
@@ -1348,49 +1346,52 @@ export default function Dashboard() {
                         <tr key={l.id}
                           onMouseEnter={e => Array.from(e.currentTarget.cells).forEach(c => c.style.background = 'rgba(201,169,110,.04)')}
                           onMouseLeave={e => Array.from(e.currentTarget.cells).forEach(c => c.style.background = '')}>
+
+                          {/* الاسم */}
                           <td style={{ fontSize:13, color:'#f1f5f9', textAlign:'right', padding:'12px 14px', borderBottom:'1px solid rgba(51,65,85,.4)', whiteSpace:'nowrap', maxWidth:180, overflow:'hidden', textOverflow:'ellipsis' }}>
                             {l.hasComplaint && <span style={{ display:'inline-block', width:7, height:7, borderRadius:'50%', background:'#f87171', marginLeft:5, verticalAlign:'middle' }} title="شكوى" />}
                             {l.fullName || 'unknown'}
                           </td>
-{/* Mobile card fields */}
-<div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:12 }}>
-  {/* التليفون — منفصل عشان فيه أيقونة */}
-  <div style={{ display:'flex', flexDirection:'column', gap:2 }}>
-    <div style={{ fontSize:10, color:'#94a3b8', fontWeight:600, letterSpacing:.5 }}>التليفون</div>
-    <div style={{ display:'flex', alignItems:'center', gap:5 }}>
-      <span style={{ fontSize:12, color:'#f1f5f9' }}>{l.phone || 'unknown'}</span>
-      {l.phone && (
-        <a href={`https://wa.me/${l.phone.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer"
-          style={{ display:'flex', color:'#25d366', textDecoration:'none' }}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="#25d366">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-            <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.126 1.533 5.857L.057 23.428a.5.5 0 00.609.61l5.627-1.476A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.857a9.857 9.857 0 01-5.028-1.374l-.36-.214-3.732.979.998-3.645-.235-.374A9.821 9.821 0 012.143 12C2.143 6.54 6.54 2.143 12 2.143c5.46 0 9.857 4.397 9.857 9.857 0 5.46-4.397 9.857-9.857 9.857z"/>
-          </svg>
-        </a>
-      )}
-    </div>
-  </div>
-  {/* باقي الفيلدز */}
-  {[
-    { label:'المصدر',  val: l.source || 'unknown' },
-    { label:'مسند لـ', val: l.assignedTo || 'غير مسند' },
-    { label:'التاريخ', val: fmt(l.createdAt) },
-  ].map(f => (
-    <div key={f.label} style={{ display:'flex', flexDirection:'column', gap:2 }}>
-      <div style={{ fontSize:10, color:'#94a3b8', fontWeight:600, letterSpacing:.5 }}>{f.label}</div>
-      <div style={{ fontSize:12, color:'#f1f5f9', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{f.val}</div>
-    </div>
-  ))}
-</div>                          <td style={{ padding:'12px 14px', borderBottom:'1px solid rgba(51,65,85,.4)', whiteSpace:'nowrap' }}><Badge status={resolveStatus(l.status)} /></td>
-                          <td style={{ fontSize:13, color:'#f1f5f9', textAlign:'right', padding:'12px 14px', borderBottom:'1px solid rgba(51,65,85,.4)', whiteSpace:'nowrap' }}>
-                            {l.source ? <span style={{ background:'rgba(201,169,110,.08)', color:'#C9A96E', padding:'2px 8px', borderRadius:6, fontSize:11 }}>{l.source}</span> : 'unknown'}
+
+                          {/* التليفون + واتساب */}
+                          <td style={{ fontSize:12, color:'#f1f5f9', textAlign:'right', padding:'12px 14px', borderBottom:'1px solid rgba(51,65,85,.4)', whiteSpace:'nowrap' }}>
+                            <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                              <span style={{ fontFamily:'monospace', letterSpacing:.5 }}>{l.phone || 'unknown'}</span>
+                              <WaBtn phone={l.phone} />
+                            </div>
                           </td>
+
+                          {/* الحالة */}
+                          <td style={{ padding:'12px 14px', borderBottom:'1px solid rgba(51,65,85,.4)', whiteSpace:'nowrap' }}>
+                            <Badge status={resolveStatus(l.status)} />
+                          </td>
+
+                          {/* المصدر */}
+                          <td style={{ fontSize:13, color:'#f1f5f9', textAlign:'right', padding:'12px 14px', borderBottom:'1px solid rgba(51,65,85,.4)', whiteSpace:'nowrap' }}>
+                            {l.source ? <span style={{ background:'rgba(201,169,110,.08)', color:'#C9A96E', padding:'2px 8px', borderRadius:6, fontSize:11 }}>{l.source}</span> : <span style={{ color:'#475569' }}>—</span>}
+                          </td>
+
+                          {/* مسند لـ */}
                           <td style={{ fontSize:12, color:'#94a3b8', textAlign:'right', padding:'12px 14px', borderBottom:'1px solid rgba(51,65,85,.4)', whiteSpace:'nowrap' }}>
                             {l.assignedTo || <span style={{ color:'#475569', fontStyle:'italic' }}>غير مسند</span>}
                           </td>
-                          <td style={{ fontSize:12, color:'#94a3b8', textAlign:'right', padding:'12px 14px', borderBottom:'1px solid rgba(51,65,85,.4)', whiteSpace:'nowrap' }}>{fmtI(l.lastInteractionDate, l.lastInteractionType)}</td>
-                          <td style={{ fontSize:12, color:'#64748b', textAlign:'right', padding:'12px 14px', borderBottom:'1px solid rgba(51,65,85,.4)', maxWidth:200, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{l.email || 'unknown'}</td>
-                          <td style={{ fontSize:12, color:'#94a3b8', textAlign:'right', padding:'12px 14px', borderBottom:'1px solid rgba(51,65,85,.4)', whiteSpace:'nowrap' }}>{fmt(l.createdAt)}</td>
+
+                          {/* آخر تفاعل */}
+                          <td style={{ fontSize:12, color:'#94a3b8', textAlign:'right', padding:'12px 14px', borderBottom:'1px solid rgba(51,65,85,.4)', whiteSpace:'nowrap' }}>
+                            {fmtI(l.lastInteractionDate, l.lastInteractionType)}
+                          </td>
+
+                          {/* الإيميل */}
+                          <td style={{ fontSize:12, color:'#64748b', textAlign:'right', padding:'12px 14px', borderBottom:'1px solid rgba(51,65,85,.4)', maxWidth:200, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                            {l.email || '—'}
+                          </td>
+
+                          {/* تاريخ الإضافة */}
+                          <td style={{ fontSize:12, color:'#94a3b8', textAlign:'right', padding:'12px 14px', borderBottom:'1px solid rgba(51,65,85,.4)', whiteSpace:'nowrap' }}>
+                            {fmt(l.createdAt)}
+                          </td>
+
+                          {/* إجراءات */}
                           <td style={{ padding:'10px 14px', borderBottom:'1px solid rgba(51,65,85,.4)', whiteSpace:'nowrap' }}>
                             <ActionMenu lead={l} onAction={handleAction} />
                           </td>
@@ -1400,7 +1401,9 @@ export default function Dashboard() {
                   </tbody>
                 </table>
               </div>
+
             ) : (
+              /* Mobile Cards */
               <div>
                 {slice.length === 0
                   ? <div style={{ padding:40, textAlign:'center', color:'#94a3b8' }}>لا توجد نتائج</div>
@@ -1413,12 +1416,21 @@ export default function Dashboard() {
                         </div>
                         <Badge status={resolveStatus(l.status)} />
                       </div>
+
                       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:12 }}>
+                        {/* التليفون + واتساب */}
+                        <div style={{ display:'flex', flexDirection:'column', gap:2 }}>
+                          <div style={{ fontSize:10, color:'#94a3b8', fontWeight:600, letterSpacing:.5 }}>التليفون</div>
+                          <div style={{ display:'flex', alignItems:'center', gap:5 }}>
+                            <span style={{ fontSize:12, color:'#f1f5f9' }}>{l.phone || '—'}</span>
+                            <WaBtn phone={l.phone} />
+                          </div>
+                        </div>
+                        {/* باقي الفيلدز */}
                         {[
-                          { label:'التليفون', val: l.phone || 'unknown' },
-                          { label:'المصدر',   val: l.source || 'unknown' },
-                          { label:'مسند لـ',  val: l.assignedTo || 'غير مسند' },
-                          { label:'التاريخ',  val: fmt(l.createdAt) },
+                          { label:'المصدر',  val: l.source    || '—' },
+                          { label:'مسند لـ', val: l.assignedTo || 'غير مسند' },
+                          { label:'التاريخ', val: fmt(l.createdAt) },
                         ].map(f => (
                           <div key={f.label} style={{ display:'flex', flexDirection:'column', gap:2 }}>
                             <div style={{ fontSize:10, color:'#94a3b8', fontWeight:600, letterSpacing:.5 }}>{f.label}</div>
@@ -1426,6 +1438,7 @@ export default function Dashboard() {
                           </div>
                         ))}
                       </div>
+
                       <ActionMenu lead={l} onAction={handleAction} />
                     </div>
                   ))
@@ -1436,7 +1449,7 @@ export default function Dashboard() {
             {/* Pagination */}
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 16px', borderTop:'1px solid #334155', flexWrap:'wrap', gap:8 }}>
               <div style={{ fontSize:12, color:'#94a3b8' }}>
-                {filtered.length === 0 ? 'لا توجد نتائج' : `عرض ${(page-1)*PAGE_SIZE+1}--${Math.min(page*PAGE_SIZE,filtered.length)} من ${filtered.length}`}
+                {filtered.length === 0 ? 'لا توجد نتائج' : `عرض ${(page-1)*PAGE_SIZE+1}–${Math.min(page*PAGE_SIZE,filtered.length)} من ${filtered.length}`}
               </div>
               <div style={{ display:'flex', flexWrap:'wrap', gap:4 }}>
                 <button style={{ height:30, minWidth:30, padding:'0 9px', fontSize:12, borderRadius:7, border:'1px solid #334155', background:'transparent', color:'#94a3b8', cursor:'pointer', fontFamily:"'Cairo',sans-serif" }}
@@ -1456,18 +1469,18 @@ export default function Dashboard() {
         </>
       )}
 
-      {/* MODALS */}
-      {showCreate               && <CreateLeadModal onClose={() => setShowCreate(false)} onSuccess={() => { setShowCreate(false); showToast('تم إضافة الليد'); loadLeads() }} />}
-      {modal?.type === 'status'  && <StatusModal    lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
-      {modal?.type === 'assign'  && <AssignModal    lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
-      {modal?.type === 'note'    && <NoteModal      lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
-      {modal?.type === 'task'    && <TaskModal      lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
-      {modal?.type === 'followup'&& <FollowUpModal  lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
-      {modal?.type === 'edit'    && <EditModal      lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
-      {modal?.type === 'convert' && <ConvertModal   lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
-      {modal?.type === 'archive' && <ArchiveModal   lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
+      {/* ── Modals ── */}
+      {showCreate                && <CreateLeadModal onClose={() => setShowCreate(false)} onSuccess={() => { setShowCreate(false); showToast('تم إضافة الليد'); loadLeads() }} />}
+      {modal?.type === 'status'  && <StatusModal   lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
+      {modal?.type === 'assign'  && <AssignModal   lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
+      {modal?.type === 'note'    && <NoteModal     lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
+      {modal?.type === 'task'    && <TaskModal     lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
+      {modal?.type === 'followup'&& <FollowUpModal lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
+      {modal?.type === 'edit'    && <EditModal     lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
+      {modal?.type === 'convert' && <ConvertModal  lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
+      {modal?.type === 'archive' && <ArchiveModal  lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
       {drawer     && <DetailsDrawer lead={drawer} onClose={() => setDrawer(null)} />}
-      {showImport && <ImportModal   onClose={() => setShowImport(false)} onSuccess={() => { setShowImport(false); showToast('تم الاستيراد بنجاح'); loadLeads() }} />}
+      {showImport && <ImportModal  onClose={() => setShowImport(false)} onSuccess={() => { setShowImport(false); showToast('تم الاستيراد بنجاح'); loadLeads() }} />}
     </div>
   )
 }
