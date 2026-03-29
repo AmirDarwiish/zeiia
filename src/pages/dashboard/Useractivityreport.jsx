@@ -78,9 +78,9 @@ const S = {
   },
   btnGold: {
     height: 38, padding: "0 22px", borderRadius: 9, border: "none",
-    background: "#C9A96E", color: "#080d16", fontSize: 12,
+    background: "#C9A96E", color: "#080d16", fontSize: 12, width: "100%",
     fontWeight: 700, cursor: "pointer", fontFamily: "'Cairo',sans-serif",
-    display: "flex", alignItems: "center", gap: 7, whiteSpace: "nowrap",
+    display: "flex", alignItems: "center", justifyContent: "center", gap: 7, whiteSpace: "nowrap",
   },
   btnGhost: {
     height: 34, padding: "0 14px", borderRadius: 8,
@@ -95,7 +95,7 @@ const S = {
 // ─────────────────────────────────────────────
 function StatCard({ label, value, sub, color = "#C9A96E", icon }) {
   return (
-    <div style={{ ...S.card, padding: "16px 18px", position: "relative", overflow: "hidden" }}>
+    <div style={{ ...S.card, padding: "16px 18px", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", justifyContent: "center" }}>
       <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 1, background: color, opacity: 0.35 }} />
       <div style={{
         width: 32, height: 32, borderRadius: 8, marginBottom: 10,
@@ -210,7 +210,7 @@ function DateRangePicker({ value, onChange }) {
     if (t === lo.getTime() && t === (hi?.getTime() ?? t)) return "range-start range-end"
     if (t === lo.getTime())                               return "range-start"
     if (hi && t === hi.getTime())                         return "range-end"
-    if (hi && t > lo.getTime() && t < hi.getTime())      return "in-range"
+    if (hi && t > lo.getTime() && t < hi.getTime())       return "in-range"
     return ""
   }
 
@@ -232,9 +232,9 @@ function DateRangePicker({ value, onChange }) {
         ...DS.day,
         ...(isToday ? DS.today : {}),
         ...(rc === "in-range"                                          ? DS.inRange     : {}),
-        ...(rc.includes("range-start") && rc.includes("range-end")    ? DS.rangeSingle : {}),
-        ...(rc.includes("range-start") && !rc.includes("range-end")   ? DS.rangeStart  : {}),
-        ...(rc.includes("range-end")   && !rc.includes("range-start") ? DS.rangeEnd    : {}),
+        ...(rc.includes("range-start") && rc.includes("range-end")     ? DS.rangeSingle : {}),
+        ...(rc.includes("range-start") && !rc.includes("range-end")    ? DS.rangeStart  : {}),
+        ...(rc.includes("range-end")   && !rc.includes("range-start")  ? DS.rangeEnd    : {}),
       }
       cells.push(
         <div
@@ -261,9 +261,10 @@ function DateRangePicker({ value, onChange }) {
     : lo ? `${fmt(lo)}  —  ...` : null
 
   return (
-    <div ref={ref} style={{ position: "relative" }}>
+    <div ref={ref} style={{ position: "relative", width: "100%" }}>
       {/* Trigger */}
       <div
+        className="date-trigger-box"
         style={{ ...DS.box, ...(open ? DS.boxActive : {}) }}
         onClick={() => setOpen((v) => !v)}
       >
@@ -278,7 +279,7 @@ function DateRangePicker({ value, onChange }) {
 
       {/* Dropdown */}
       {open && (
-        <div style={DS.dropdown}>
+        <div className="responsive-date-dropdown" style={DS.dropdown}>
           {/* Shortcuts */}
           <div style={DS.shortcuts}>
             {[["اليوم",0],["آخر 7 أيام",7],["آخر 14 يوم",14],["آخر 30 يوم",30],["آخر 3 أشهر",90]].map(([lbl, d]) => (
@@ -289,7 +290,7 @@ function DateRangePicker({ value, onChange }) {
           </div>
 
           {/* Two calendars */}
-          <div style={DS.calMonths}>
+          <div className="responsive-cal-months" style={DS.calMonths}>
             {[{ yr: viewYear, mo: viewMonth, side: "left" }, { yr: rYr2, mo: rMo2, side: "right" }].map(({ yr, mo, side }) => (
               <div key={side}>
                 <div style={DS.calHeader}>
@@ -307,8 +308,8 @@ function DateRangePicker({ value, onChange }) {
           </div>
 
           {/* Footer */}
-          <div style={DS.calFooter}>
-            <div style={{ fontSize: 11, color: "#6b7891", fontFamily: "'Cairo',sans-serif" }}>
+          <div className="responsive-cal-footer" style={DS.calFooter}>
+            <div style={{ fontSize: 11, color: "#6b7891", fontFamily: "'Cairo',sans-serif", marginBottom: "8px" }}>
               {!lo
                 ? "اختر تاريخ البداية"
                 : !hi
@@ -339,7 +340,7 @@ const DS = {
     height: 38, background: "#080d16",
     border: "1px solid rgba(255,255,255,0.06)", borderRadius: 9,
     padding: "0 12px", display: "flex", alignItems: "center", gap: 8,
-    cursor: "pointer", transition: "border-color .2s", minWidth: 240,
+    cursor: "pointer", transition: "border-color .2s", width: "100%",
   },
   boxActive:   { borderColor: "rgba(201,169,110,0.25)" },
   rangeText:   { fontSize: 12, color: "#e8edf5", fontFamily: "'Cairo',sans-serif", flex: 1 },
@@ -347,7 +348,7 @@ const DS = {
     position: "absolute", top: "calc(100% + 6px)", right: 0,
     background: "#0d1420", border: "1px solid rgba(255,255,255,0.06)",
     borderRadius: 14, padding: 16, zIndex: 999,
-    minWidth: 560, boxShadow: "0 16px 40px rgba(0,0,0,0.6)",
+    boxShadow: "0 16px 40px rgba(0,0,0,0.6)",
   },
   shortcuts: {
     display: "flex", gap: 6, flexWrap: "wrap",
@@ -360,7 +361,7 @@ const DS = {
     background: "#080d16", color: "#6b7891",
     cursor: "pointer", fontFamily: "'Cairo',sans-serif",
   },
-  calMonths: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 },
+  calMonths: { gap: 16 },
   calHeader: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 },
   calTitle:  { fontSize: 13, fontWeight: 700, color: "#e8edf5", fontFamily: "'Cairo',sans-serif" },
   navBtn: {
@@ -488,7 +489,32 @@ export default function UserActivityReport() {
 
   // ── Render ──
   return (
-    <div style={S.wrap}>
+    <div className="wrap-container" style={S.wrap}>
+      {/* ── Responsive Styles (Injected for easy copy-paste) ── */}
+      <style>{`
+        .responsive-grid-filter { display: grid; grid-template-columns: 1fr 1.4fr auto; gap: 12px; align-items: flex-end; }
+        .responsive-grid-main { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 16px; }
+        .responsive-grid-halves { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .responsive-cal-months { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .responsive-date-dropdown { min-width: 560px; }
+        
+        @media (max-width: 900px) {
+          .responsive-grid-filter { grid-template-columns: 1fr 1fr; }
+          .responsive-grid-filter > button { grid-column: span 2; }
+          .responsive-grid-main { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 600px) {
+          .wrap-container { padding: 16px 12px !important; }
+          .responsive-grid-filter { grid-template-columns: 1fr; }
+          .responsive-grid-filter > button { grid-column: span 1; }
+          .responsive-grid-halves { grid-template-columns: 1fr; }
+          .responsive-cal-months { grid-template-columns: 1fr; }
+          .responsive-date-dropdown { min-width: 280px !important; width: 100%; right: auto; left: 0; }
+          .responsive-cal-footer { flex-direction: column; align-items: flex-start; }
+          .date-trigger-box { min-width: 100% !important; }
+        }
+      `}</style>
 
       {/* ── Header ── */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginBottom: 28 }}>
@@ -515,9 +541,9 @@ export default function UserActivityReport() {
           {Icon.search} بحث في التقرير
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr auto", gap: 12, alignItems: "flex-end" }}>
+        <div className="responsive-grid-filter">
           {/* User select */}
-          <div>
+          <div style={{ width: "100%" }}>
             <label style={S.lbl}>المستخدم *</label>
             <select value={userId} onChange={(e) => setUserId(e.target.value)} style={S.sel}>
               <option value="">-- اختر مستخدم --</option>
@@ -528,7 +554,7 @@ export default function UserActivityReport() {
           </div>
 
           {/* Date Range Picker */}
-          <div>
+          <div style={{ width: "100%" }}>
             <label style={S.lbl}>نطاق التاريخ *</label>
             <DateRangePicker value={dateRange} onChange={setDateRange} />
           </div>
@@ -568,9 +594,9 @@ export default function UserActivityReport() {
               }}>
                 {(selectedUser.fullName || "?")[0]}
               </div>
-              <div style={{ flex: 1 }}>
+              <div style={{ flex: 1, minWidth: 150 }}>
                 <div style={{ fontSize: 15, fontWeight: 700, color: "#e8edf5" }}>{selectedUser.fullName}</div>
-                <div style={{ fontSize: 11, color: "#3d4a60" }}>{selectedUser.email}</div>
+                <div style={{ fontSize: 11, color: "#3d4a60", wordBreak: "break-all" }}>{selectedUser.email}</div>
               </div>
               {dateRange?.start && dateRange?.end && (
                 <div style={{ fontSize: 11, color: "#6b7891", background: "#080d16", padding: "6px 14px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", gap: 6 }}>
@@ -582,7 +608,7 @@ export default function UserActivityReport() {
           )}
 
           {/* Stats */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 10, marginBottom: 18 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 10, marginBottom: 18 }}>
             <StatCard
               icon={<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#C9A96E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 2L4 9h5l-2 5 7-7H9l2-5z"/></svg>}
               label="إجمالي الإجراءات" value={actions.length} sub="إجراء في النطاق" color="#C9A96E"
@@ -607,7 +633,7 @@ export default function UserActivityReport() {
 
           {/* First / Last */}
           {(firstAction || lastAction) && (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 18 }}>
+            <div className="responsive-grid-halves" style={{ marginBottom: 18 }}>
               {firstAction && (
                 <div style={{ ...S.card, padding: "14px 16px", borderTop: "2px solid #5b9cf6" }}>
                   <div style={{ fontSize: 10, color: "#5b9cf6", fontWeight: 700, marginBottom: 8, letterSpacing: 1 }}>أول إجراء في النطاق</div>
@@ -624,7 +650,7 @@ export default function UserActivityReport() {
                 <div style={{ ...S.card, padding: "14px 16px", borderTop: "2px solid #a78bfa" }}>
                   <div style={{ fontSize: 10, color: "#a78bfa", fontWeight: 700, marginBottom: 8, letterSpacing: 1 }}>آخر إجراء في النطاق</div>
                   <div style={{ fontSize: 18, fontWeight: 900, color: "#e8edf5", marginBottom: 8, fontFamily: "'Cairo',sans-serif" }}>{fmtTime(lastAction.time)}</div>
-                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                     <span style={{ background: getActionStyle(lastAction.action).bg, color: getActionStyle(lastAction.action).color, padding: "2px 9px", borderRadius: 6, fontSize: 10, fontWeight: 700 }}>
                       {getActionStyle(lastAction.action).label || lastAction.action}
                     </span>
@@ -636,14 +662,14 @@ export default function UserActivityReport() {
           )}
 
           {/* Main grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gap: 16 }}>
+          <div className="responsive-grid-main">
 
             {/* Timeline */}
             <div>
               <div style={{ fontSize: 11, fontWeight: 700, color: "#6b7891", marginBottom: 10, display: "flex", alignItems: "center", gap: 7, letterSpacing: 1 }}>
                 {Icon.list} سجل الإجراءات التفصيلي ({actions.length})
               </div>
-              <div style={{ ...S.card, maxHeight: 540, overflowY: "auto" }}>
+              <div style={{ ...S.card, maxHeight: 540, overflowY: "auto", overflowX: "hidden" }}>
                 {actions.length === 0 ? (
                   <div style={{ padding: 50, textAlign: "center", color: "#3d4a60", fontSize: 13 }}>
                     لا توجد إجراءات في هذا النطاق
@@ -654,7 +680,7 @@ export default function UserActivityReport() {
                     return (
                       <div
                         key={i}
-                        style={{ padding: "9px 16px", borderBottom: "1px solid rgba(255,255,255,0.04)", display: "flex", alignItems: "center", gap: 10, transition: "background .15s" }}
+                        style={{ padding: "12px 16px", borderBottom: "1px solid rgba(255,255,255,0.04)", display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", transition: "background .15s" }}
                         onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(201,169,110,0.03)")}
                         onMouseLeave={(e) => (e.currentTarget.style.background = "")}
                       >
@@ -666,7 +692,7 @@ export default function UserActivityReport() {
                           {st.label || a.action}
                         </span>
                         <span style={{ fontSize: 12, color: "#e8edf5", fontWeight: 600, flexShrink: 0 }}>{entityAr(a.entity)}</span>
-                        <span style={{ fontSize: 10, color: "#3d4a60", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <span style={{ fontSize: 10, color: "#3d4a60", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: "1 1 auto" }}>
                           {a.action}
                         </span>
                       </div>
@@ -717,7 +743,7 @@ export default function UserActivityReport() {
 
       {/* ── Empty state ── */}
       {!searched && !loading && (
-        <div style={{ textAlign: "center", padding: 80 }}>
+        <div style={{ textAlign: "center", padding: "80px 20px" }}>
           <div style={{
             width: 52, height: 52, borderRadius: 14,
             background: "#0d1420", border: "1px solid rgba(255,255,255,0.06)",
