@@ -734,7 +734,7 @@ function DetailsDrawer({ lead, onClose }) {
           fetch(`${API_BASE_URL}/api/leads/${lead.id}/notes`,             { headers:authHeaders(), credentials:'include' }),
           fetch(`${API_BASE_URL}/api/leads/${lead.id}/follow-up-history`, { headers:authHeaders(), credentials:'include' }),
         ])
-        if (dr.ok)  setDetails(await dr.json())
+        if (dr.ok) { const d = await dr.json(); setDetails(d?.data || d) }
         if (nr.ok)  { const nd = await nr.json(); setNotes(Array.isArray(nd) ? nd : (nd?.data || [])) }
         if (fhr.ok) { const fd = await fhr.json(); setFollowHistory(Array.isArray(fd) ? fd : (fd?.data || [])) }
       } catch(e) { setError(e.message) }
@@ -782,13 +782,13 @@ function DetailsDrawer({ lead, onClose }) {
               <div style={{ background:'#1e293b', border:'1px solid #334155', borderRadius:12, padding:16 }}>
                 <div style={{ fontSize:11, color:'#C9A96E', fontWeight:700, marginBottom:12, letterSpacing:1 }}>معلومات أساسية</div>
                 {[
-                  { label:'الاسم',      val: details.leadInfo?.name },
-                  { label:'التليفون',    val: details.leadInfo?.phone },
-                  { label:'الإيميل',     val: details.leadInfo?.email },
-                  { label:'المصدر',      val: details.leadInfo?.source },
-                  { label:'مسند لـ',     val: details.leadInfo?.assignedUser?.fullName },
-                  { label:'الحالة',      val: details.currentStage?.name },
-                  { label:'سبب الخسارة', val: details.leadInfo?.lostReason },
+                    { label:'الاسم',      val: details.leadInfo?.name || details.leadInfo?.fullName },
+                    { label:'التليفون',    val: details.leadInfo?.phone },
+                    { label:'الإيميل',     val: details.leadInfo?.email },
+                    { label:'المصدر',      val: details.leadInfo?.source },
+                    { label:'مسند لـ',     val: details.leadInfo?.assignedUser?.fullName || details.leadInfo?.assignedTo },
+                    { label:'الحالة',      val: details.currentStage?.name },
+                    { label:'سبب الخسارة', val: details.leadInfo?.lostReason },
                 ].filter(f => f.val).map(f => (
                   <div key={f.label} style={{ display:'flex', justifyContent:'space-between', padding:'6px 0', borderBottom:'1px solid rgba(51,65,85,.4)', fontSize:13 }}>
                     <span style={{ color:'#94a3b8' }}>{f.label}</span>
