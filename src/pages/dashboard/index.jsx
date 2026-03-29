@@ -1281,7 +1281,14 @@ function KanbanBoard({ onAction }) {
         }}>{toast.msg}</div>
       )}
 
-      <style>{`.kb-sc::-webkit-scrollbar{height:6px}.kb-sc::-webkit-scrollbar-track{background:#0f172a}.kb-sc::-webkit-scrollbar-thumb{background:#334155;border-radius:3px}.kb-sc::-webkit-scrollbar-thumb:hover{background:#C9A96E}`}</style>
+<style>{`
+  .kb-sc::-webkit-scrollbar         { height: 6px }
+  .kb-sc::-webkit-scrollbar-track   { background: #0f172a }
+  .kb-sc::-webkit-scrollbar-thumb   { background: #334155; border-radius: 3px }
+  .kb-sc::-webkit-scrollbar-thumb:hover { background: #C9A96E }
+  .kb-col::-webkit-scrollbar        { display: none }
+  .kb-col { scrollbar-width: none; -ms-overflow-style: none }
+`}</style>
 
       <div className="kb-sc" style={{ overflowX:'auto', paddingBottom:12 }}>
         <div style={{ display:'flex', gap:10, minWidth:'max-content', padding:'4px 2px 12px', alignItems:'flex-start' }}>
@@ -1291,8 +1298,7 @@ function KanbanBoard({ onAction }) {
             return (
               <div
                 key={s.id}
-                style={{ width:225, flexShrink:0, display:'flex', flexDirection:'column', borderRadius:12, background:'#1e293b', border:'1px solid #334155', overflow:'hidden' }}
-              >
+                style={{ width:225, flexShrink:0, display:'flex', flexDirection:'column', borderRadius:12, background:'#1e293b', border:'1px solid #334155' }}              >
                 {/* Column Header */}
                 <div style={{ padding:'10px 13px 9px', borderBottom:'1px solid #334155', borderTop:`3px solid ${s.color}`, background:'rgba(15,23,42,.5)' }}>
                   <div style={{ display:'flex', alignItems:'center', gap:8 }}>
@@ -1303,12 +1309,13 @@ function KanbanBoard({ onAction }) {
 
                 {/* Drop zone */}
                 <div
+                  className="kb-col"
                   onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect='move'; setDragOverCol(s.id) }}
                   onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget)) setDragOverCol(null) }}
                   onDrop={() => handleDrop(s.id)}
                   style={{
                     flex:1, padding:8, display:'flex', flexDirection:'column', gap:7,
-                    minHeight:80, overflowY:'auto', maxHeight:560,
+                    minHeight:80,
                     background: isOver ? 'rgba(201,169,110,.05)' : 'transparent',
                     border: isOver ? '1.5px dashed rgba(201,169,110,.35)' : '1.5px solid transparent',
                     borderRadius: isOver ? 8 : 0,
