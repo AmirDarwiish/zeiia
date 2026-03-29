@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import API_BASE_URL from "../../config"
 
@@ -22,7 +22,9 @@ const fmtTime = (d) =>
       })
     : "—"
 
-const toLocalISO = (date) => {
+const toLocalISO = (dateStr) => {
+  if (!dateStr) return "";
+  const date = new Date(dateStr);
   const y = date.getFullYear()
   const m = String(date.getMonth() + 1).padStart(2, "0")
   const d = String(date.getDate()).padStart(2, "0")
@@ -76,6 +78,13 @@ const S = {
     padding: "0 12px", fontFamily: "'Cairo',sans-serif",
     outline: "none", cursor: "pointer", appearance: "none",
   },
+  input: {
+    width: "100%", boxSizing: "border-box", height: 38,
+    background: "#080d16", border: "1px solid rgba(255,255,255,0.06)",
+    borderRadius: 9, color: "#e8edf5", fontSize: 12,
+    padding: "0 12px", fontFamily: "'Cairo',sans-serif",
+    outline: "none",
+  },
   btnGold: {
     height: 38, padding: "0 22px", borderRadius: 9, border: "none",
     background: "#C9A96E", color: "#080d16", fontSize: 12, width: "100%",
@@ -113,302 +122,12 @@ function StatCard({ label, value, sub, color = "#C9A96E", icon }) {
 }
 
 // ─────────────────────────────────────────────
-// DateRangePicker
-// ─────────────────────────────────────────────
-const MONTHS_AR = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"]
-const DAYS_AR   = ["أح","إث","ثل","أر","خم","جم","سب"]
-const TODAY = new Date(); TODAY.setHours(0, 0, 0, 0)
-
-function DateRangePicker({ value, onChange }) {
-  const [open, setOpen]           = useState(false)
-  const [viewYear, setViewYear]   = useState(new Date().getFullYear())
-  const [viewMonth, setViewMonth] = useState(new Date().getMonth())
-  const [startDate, setStartDate] = useState(value?.start || null)
-  const [endDate, setEndDate]     = useState(value?.end   || null)
-  const [picking, setPicking]     = useState(false)
-  const [hovDate, setHovDate]     = useState(null)
-  const ref = useRef(null)
-
-  useEffect(() => {
-    setStartDate(value?.start || null)
-    setEndDate(value?.end     || null)
-  }, [value])
-
-  useEffect(() => {
-    const handler = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) {
-        setOpen(false)
-        if (picking) { setStartDate(null); setPicking(false) }
-      }
-    }
-    document.addEventListener("mousedown", handler)
-    return () => document.removeEventListener("mousedown", handler)
-  }, [picking])
-
-  const fmt     = (d) => d?.toLocaleDateString("ar-EG", { day: "numeric", month: "short", year: "numeric" })
-  const fmtFull = (d) => d?.toLocaleDateString("ar-EG", { day: "numeric", month: "long" })
-
-  const navMonth = (dir) => {
-    let m = viewMonth + dir, y = viewYear
-    if (m > 11) { m = 0; y++ }
-    if (m < 0)  { m = 11; y-- }
-    setViewMonth(m); setViewYear(y)
-  }
-
-  const pickDate = (date) => {
-    if (!startDate || (!picking && endDate)) {
-      setStartDate(date); setEndDate(null); setPicking(true)
-    } else if (picking) {
-      const [lo, hi] = date < startDate ? [date, startDate] : [startDate, date]
-      setStartDate(lo); setEndDate(hi); setPicking(false)
-      onChange?.({ start: lo, end: hi })
-    }
-  }
-
-  const applyRange = () => {
-    if (startDate && endDate) { onChange?.({ start: startDate, end: endDate }); setOpen(false) }
-  }
-
-  const clearRange = () => {
-    setStartDate(null); setEndDate(null); setPicking(false); setHovDate(null)
-    onChange?.(null)
-  }
-
-  const setShortcut = (days) => {
-    const end = new Date(); end.setHours(0, 0, 0, 0)
-    const start = new Date(end); start.setDate(end.getDate() - days)
-    const lo = days === 0 ? new Date(end) : start
-    setStartDate(lo); setEndDate(end); setPicking(false)
-    setViewYear(lo.getFullYear()); setViewMonth(lo.getMonth())
-    onChange?.({ start: lo, end })
-  }
-
-  const setThisMonth = () => {
-    const now = new Date()
-    const s = new Date(now.getFullYear(), now.getMonth(), 1)
-    const e = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-    setStartDate(s); setEndDate(e); setPicking(false)
-    setViewYear(now.getFullYear()); setViewMonth(now.getMonth())
-    onChange?.({ start: s, end: e })
-  }
-
-  const setLastMonth = () => {
-    const now = new Date()
-    const s = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-    const e = new Date(now.getFullYear(), now.getMonth(), 0)
-    setStartDate(s); setEndDate(e); setPicking(false)
-    setViewYear(s.getFullYear()); setViewMonth(s.getMonth())
-    onChange?.({ start: s, end: e })
-  }
-
-  const getRangeClass = (date) => {
-    if (!startDate) return ""
-    const effEnd = picking && hovDate ? hovDate : endDate
-    const lo = startDate <= (effEnd || startDate) ? startDate : (effEnd || startDate)
-    const hi = startDate <= (effEnd || startDate) ? (effEnd || startDate) : startDate
-    const t  = date.getTime()
-    if (t === lo.getTime() && t === (hi?.getTime() ?? t)) return "range-start range-end"
-    if (t === lo.getTime())                               return "range-start"
-    if (hi && t === hi.getTime())                         return "range-end"
-    if (hi && t > lo.getTime() && t < hi.getTime())       return "in-range"
-    return ""
-  }
-
-  const renderMonth = (yr, mo) => {
-    const first = new Date(yr, mo, 1).getDay()
-    const days  = new Date(yr, mo + 1, 0).getDate()
-    const cells = []
-
-    DAYS_AR.forEach((d, i) =>
-      cells.push(<div key={`dow-${i}`} style={DS.dow}>{d}</div>)
-    )
-    for (let i = 0; i < first; i++) cells.push(<div key={`e-${i}`} />)
-
-    for (let d = 1; d <= days; d++) {
-      const date    = new Date(yr, mo, d)
-      const rc      = getRangeClass(date)
-      const isToday = date.getTime() === TODAY.getTime()
-      const dayStyle = {
-        ...DS.day,
-        ...(isToday ? DS.today : {}),
-        ...(rc === "in-range"                                          ? DS.inRange     : {}),
-        ...(rc.includes("range-start") && rc.includes("range-end")     ? DS.rangeSingle : {}),
-        ...(rc.includes("range-start") && !rc.includes("range-end")    ? DS.rangeStart  : {}),
-        ...(rc.includes("range-end")   && !rc.includes("range-start")  ? DS.rangeEnd    : {}),
-      }
-      cells.push(
-        <div
-          key={d}
-          style={dayStyle}
-          onClick={() => pickDate(date)}
-          onMouseEnter={() => setHovDate(date)}
-          onMouseLeave={() => setHovDate(null)}
-        >
-          {d}
-        </div>
-      )
-    }
-    return cells
-  }
-
-  const rMo2 = viewMonth + 1 > 11 ? 0            : viewMonth + 1
-  const rYr2 = viewMonth + 1 > 11 ? viewYear + 1 : viewYear
-  const lo      = startDate && endDate ? (startDate < endDate ? startDate : endDate) : startDate
-  const hi      = startDate && endDate ? (startDate < endDate ? endDate   : startDate) : null
-  const selDays = lo && hi ? Math.round((hi - lo) / 86400000) + 1 : null
-  const rangeLabel = lo && hi
-    ? `${fmt(lo)}  —  ${fmt(hi)}`
-    : lo ? `${fmt(lo)}  —  ...` : null
-
-  return (
-    <div ref={ref} style={{ position: "relative", width: "100%" }}>
-      {/* Trigger */}
-      <div
-        className="date-trigger-box"
-        style={{ ...DS.box, ...(open ? DS.boxActive : {}) }}
-        onClick={() => setOpen((v) => !v)}
-      >
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#C9A96E" strokeWidth="1.5" strokeLinecap="round">
-          <rect x="2" y="3" width="12" height="10" rx="1.5"/>
-          <path d="M5 3V2M11 3V2M2 7h12"/>
-        </svg>
-        <span style={{ ...DS.rangeText, ...(!rangeLabel ? { color: "#3d4a60" } : {}) }}>
-          {rangeLabel || "من — إلى"}
-        </span>
-      </div>
-
-      {/* Dropdown */}
-      {open && (
-        <div className="responsive-date-dropdown" style={DS.dropdown}>
-          {/* Shortcuts */}
-          <div style={DS.shortcuts}>
-            {[["اليوم",0],["آخر 7 أيام",7],["آخر 14 يوم",14],["آخر 30 يوم",30],["آخر 3 أشهر",90]].map(([lbl, d]) => (
-              <div key={lbl} style={DS.shortcut} onClick={() => setShortcut(d)}>{lbl}</div>
-            ))}
-            <div style={DS.shortcut} onClick={setThisMonth}>هذا الشهر</div>
-            <div style={DS.shortcut} onClick={setLastMonth}>الشهر الماضي</div>
-          </div>
-
-          {/* Two calendars */}
-          <div className="responsive-cal-months" style={DS.calMonths}>
-            {[{ yr: viewYear, mo: viewMonth, side: "left" }, { yr: rYr2, mo: rMo2, side: "right" }].map(({ yr, mo, side }) => (
-              <div key={side}>
-                <div style={DS.calHeader}>
-                  {side === "left"
-                    ? <div style={DS.navBtn} onClick={() => navMonth(-1)}>‹</div>
-                    : <div style={{ width: 26 }} />}
-                  <div style={DS.calTitle}>{MONTHS_AR[mo]} {yr}</div>
-                  {side === "right"
-                    ? <div style={DS.navBtn} onClick={() => navMonth(1)}>›</div>
-                    : <div style={{ width: 26 }} />}
-                </div>
-                <div style={DS.calGrid}>{renderMonth(yr, mo)}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Footer */}
-          <div className="responsive-cal-footer" style={DS.calFooter}>
-            <div style={{ fontSize: 11, color: "#6b7891", fontFamily: "'Cairo',sans-serif", marginBottom: "8px" }}>
-              {!lo
-                ? "اختر تاريخ البداية"
-                : !hi
-                  ? <span>من <b style={{ color: "#C9A96E" }}>{fmtFull(lo)}</b> — اختر تاريخ النهاية</span>
-                  : <span>من <b style={{ color: "#C9A96E" }}>{fmtFull(lo)}</b> إلى <b style={{ color: "#C9A96E" }}>{fmtFull(hi)}</b> — <b style={{ color: "#C9A96E" }}>{selDays} يوم</b></span>
-              }
-            </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button style={DS.btnClear} onClick={clearRange}>مسح</button>
-              <button
-                style={{ ...DS.btnApply, ...(!lo || !hi ? { opacity: 0.45, cursor: "not-allowed" } : {}) }}
-                onClick={applyRange}
-                disabled={!lo || !hi}
-              >
-                تطبيق
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// DateRangePicker styles (DS)
-const DS = {
-  box: {
-    height: 38, background: "#080d16",
-    border: "1px solid rgba(255,255,255,0.06)", borderRadius: 9,
-    padding: "0 12px", display: "flex", alignItems: "center", gap: 8,
-    cursor: "pointer", transition: "border-color .2s", width: "100%",
-  },
-  boxActive:   { borderColor: "rgba(201,169,110,0.25)" },
-  rangeText:   { fontSize: 12, color: "#e8edf5", fontFamily: "'Cairo',sans-serif", flex: 1 },
-  dropdown: {
-    position: "absolute", top: "calc(100% + 6px)", right: 0,
-    background: "#0d1420", border: "1px solid rgba(255,255,255,0.06)",
-    borderRadius: 14, padding: 16, zIndex: 999,
-    boxShadow: "0 16px 40px rgba(0,0,0,0.6)",
-  },
-  shortcuts: {
-    display: "flex", gap: 6, flexWrap: "wrap",
-    marginBottom: 12, paddingBottom: 12,
-    borderBottom: "1px solid rgba(255,255,255,0.06)",
-  },
-  shortcut: {
-    fontSize: 10, fontWeight: 700, padding: "4px 10px",
-    borderRadius: 6, border: "1px solid rgba(255,255,255,0.06)",
-    background: "#080d16", color: "#6b7891",
-    cursor: "pointer", fontFamily: "'Cairo',sans-serif",
-  },
-  calMonths: { gap: 16 },
-  calHeader: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 },
-  calTitle:  { fontSize: 13, fontWeight: 700, color: "#e8edf5", fontFamily: "'Cairo',sans-serif" },
-  navBtn: {
-    width: 26, height: 26, borderRadius: 7,
-    border: "1px solid rgba(255,255,255,0.06)", background: "#080d16",
-    color: "#6b7891", cursor: "pointer",
-    display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16,
-  },
-  calGrid: { display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 },
-  dow: { textAlign: "center", fontSize: 9, fontWeight: 700, color: "#3d4a60", padding: "4px 0", fontFamily: "'Cairo',sans-serif" },
-  day: {
-    textAlign: "center", fontSize: 11, padding: "5px 2px",
-    borderRadius: 6, cursor: "pointer", color: "#6b7891",
-    fontFamily: "'Cairo',sans-serif", transition: "background .12s, color .12s",
-  },
-  today:       { color: "#C9A96E", fontWeight: 700 },
-  inRange:     { background: "rgba(201,169,110,0.1)", color: "#e8edf5", borderRadius: 0 },
-  rangeStart:  { background: "#C9A96E", color: "#080d16", fontWeight: 700, borderRadius: "6px 0 0 6px" },
-  rangeEnd:    { background: "#C9A96E", color: "#080d16", fontWeight: 700, borderRadius: "0 6px 6px 0" },
-  rangeSingle: { background: "#C9A96E", color: "#080d16", fontWeight: 700, borderRadius: 6 },
-  calFooter: {
-    marginTop: 12, paddingTop: 12,
-    borderTop: "1px solid rgba(255,255,255,0.06)",
-    display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
-  },
-  btnClear: {
-    height: 30, padding: "0 12px", borderRadius: 7,
-    border: "1px solid rgba(255,255,255,0.06)", background: "transparent",
-    color: "#6b7891", fontSize: 11, cursor: "pointer", fontFamily: "'Cairo',sans-serif",
-  },
-  btnApply: {
-    height: 30, padding: "0 14px", borderRadius: 7,
-    border: "none", background: "#C9A96E", color: "#080d16",
-    fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "'Cairo',sans-serif",
-  },
-}
-
-// ─────────────────────────────────────────────
 // Icons (SVG)
 // ─────────────────────────────────────────────
 const Icon = {
   back:     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M6 12l4-4-4-4"/></svg>,
   search:   <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="6" r="4"/><path d="M10 10l3 3"/></svg>,
   report:   <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M5 3V2M11 3V2M2 7h12"/></svg>,
-  clock:    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>,
-  flash:    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 2L4 9h5l-2 5 7-7H9l2-5z"/></svg>,
-  folder:   <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M2 4h4l2 2h6v7a1 1 0 01-1 1H3a1 1 0 01-1-1V4z"/></svg>,
   list:     <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M2 5h12M2 8h8M2 11h5"/></svg>,
   bar:      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><rect x="2" y="9" width="3" height="5" rx="0.5"/><rect x="6.5" y="6" width="3" height="8" rx="0.5"/><rect x="11" y="3" width="3" height="11" rx="0.5"/></svg>,
   calendar: <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#C9A96E" strokeWidth="1.5" strokeLinecap="round"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M5 3V2M11 3V2M2 7h12"/></svg>,
@@ -422,7 +141,8 @@ export default function UserActivityReport() {
 
   const [users, setUsers]         = useState([])
   const [userId, setUserId]       = useState("")
-  const [dateRange, setDateRange] = useState(null)           // { start: Date, end: Date }
+  // 🔴 Changed from object {start, end} to a single string date
+  const [selectedDate, setSelectedDate] = useState(toLocalISO(new Date().toISOString())) 
   const [actions, setActions]     = useState([])
   const [summary, setSummary]     = useState(null)
   const [loading, setLoading]     = useState(false)
@@ -443,22 +163,20 @@ export default function UserActivityReport() {
   }, [])
 
   const search = async () => {
-    if (!userId)              { setError("اختر مستخدم أولاً"); return }
-    if (!dateRange?.start)    { setError("اختر نطاق التاريخ"); return }
+    if (!userId)        { setError("اختر مستخدم أولاً"); return }
+    if (!selectedDate)  { setError("اختر التاريخ"); return }
 
     setLoading(true); setError(""); setSearched(true)
 
-    const startISO = toLocalISO(dateRange.start)
-    const endISO   = toLocalISO(dateRange.end)
-
     try {
+      // 🔴 Sending `date` parameter instead of startDate/endDate
       const [ar, sr] = await Promise.all([
         fetch(
-          `${API_BASE_URL}/api/reports/user-activity/actions?userId=${userId}&startDate=${startISO}&endDate=${endISO}`,
+          `${API_BASE_URL}/api/reports/user-activity/actions?userId=${userId}&date=${selectedDate}`,
           { headers: authHeaders() }
         ),
         fetch(
-          `${API_BASE_URL}/api/reports/user-activity/daily-summary?userId=${userId}&startDate=${startISO}&endDate=${endISO}`,
+          `${API_BASE_URL}/api/reports/user-activity/daily-summary?userId=${userId}&date=${selectedDate}`,
           { headers: authHeaders() }
         ),
       ])
@@ -490,14 +208,15 @@ export default function UserActivityReport() {
   // ── Render ──
   return (
     <div className="wrap-container" style={S.wrap}>
-      {/* ── Responsive Styles (Injected for easy copy-paste) ── */}
+      {/* ── Responsive Styles ── */}
       <style>{`
-        .responsive-grid-filter { display: grid; grid-template-columns: 1fr 1.4fr auto; gap: 12px; align-items: flex-end; }
+        .responsive-grid-filter { display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: flex-end; }
         .responsive-grid-main { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 16px; }
         .responsive-grid-halves { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .responsive-cal-months { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-        .responsive-date-dropdown { min-width: 560px; }
         
+        /* Fix for native date input icon color in webkit browsers */
+        ::-webkit-calendar-picker-indicator { filter: invert(0.8); cursor: pointer; }
+
         @media (max-width: 900px) {
           .responsive-grid-filter { grid-template-columns: 1fr 1fr; }
           .responsive-grid-filter > button { grid-column: span 2; }
@@ -509,10 +228,6 @@ export default function UserActivityReport() {
           .responsive-grid-filter { grid-template-columns: 1fr; }
           .responsive-grid-filter > button { grid-column: span 1; }
           .responsive-grid-halves { grid-template-columns: 1fr; }
-          .responsive-cal-months { grid-template-columns: 1fr; }
-          .responsive-date-dropdown { min-width: 280px !important; width: 100%; right: auto; left: 0; }
-          .responsive-cal-footer { flex-direction: column; align-items: flex-start; }
-          .date-trigger-box { min-width: 100% !important; }
         }
       `}</style>
 
@@ -525,7 +240,7 @@ export default function UserActivityReport() {
           </div>
           <div style={{ fontSize: 24, fontWeight: 900, color: "#e8edf5" }}>تقرير نشاط المستخدم</div>
           <div style={{ width: 32, height: 2, background: "#C9A96E", borderRadius: 2, margin: "7px 0 5px" }} />
-          <div style={{ fontSize: 11, color: "#3d4a60" }}>تتبع إجراءات المستخدمين يومياً</div>
+          <div style={{ fontSize: 11, color: "#3d4a60" }}>تتبع نشاط المستخدم في يوم محدد</div>
         </div>
         <button onClick={() => navigate("/dashboard/users")} style={S.btnGhost}>
           {Icon.back} العودة للمستخدمين
@@ -538,7 +253,7 @@ export default function UserActivityReport() {
         <div style={{ position: "absolute", top: 0, right: 0, width: 3, height: "100%", background: "#C9A96E", borderRadius: "0 12px 12px 0" }} />
 
         <div style={{ fontSize: 11, fontWeight: 700, color: "#C9A96E", marginBottom: 14, display: "flex", alignItems: "center", gap: 7, letterSpacing: 1 }}>
-          {Icon.search} بحث في التقرير
+          {Icon.search} بحث في التقرير اليومي
         </div>
 
         <div className="responsive-grid-filter">
@@ -553,10 +268,15 @@ export default function UserActivityReport() {
             </select>
           </div>
 
-          {/* Date Range Picker */}
+          {/* Single Date Picker */}
           <div style={{ width: "100%" }}>
-            <label style={S.lbl}>نطاق التاريخ *</label>
-            <DateRangePicker value={dateRange} onChange={setDateRange} />
+            <label style={S.lbl}>تاريخ التقرير *</label>
+            <input 
+              type="date" 
+              value={selectedDate} 
+              onChange={(e) => setSelectedDate(e.target.value)} 
+              style={S.input} 
+            />
           </div>
 
           {/* Search button */}
@@ -598,10 +318,10 @@ export default function UserActivityReport() {
                 <div style={{ fontSize: 15, fontWeight: 700, color: "#e8edf5" }}>{selectedUser.fullName}</div>
                 <div style={{ fontSize: 11, color: "#3d4a60", wordBreak: "break-all" }}>{selectedUser.email}</div>
               </div>
-              {dateRange?.start && dateRange?.end && (
+              {selectedDate && (
                 <div style={{ fontSize: 11, color: "#6b7891", background: "#080d16", padding: "6px 14px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", gap: 6 }}>
                   {Icon.calendar}
-                  {fmtDate(dateRange.start)} — {fmtDate(dateRange.end)}
+                  تقرير يوم: {fmtDate(selectedDate)}
                 </div>
               )}
             </div>
@@ -611,7 +331,7 @@ export default function UserActivityReport() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 10, marginBottom: 18 }}>
             <StatCard
               icon={<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#C9A96E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 2L4 9h5l-2 5 7-7H9l2-5z"/></svg>}
-              label="إجمالي الإجراءات" value={actions.length} sub="إجراء في النطاق" color="#C9A96E"
+              label="إجمالي الإجراءات" value={actions.length} sub="إجراء في هذا اليوم" color="#C9A96E"
             />
             <StatCard
               icon={<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#2dd4a0" strokeWidth="1.5" strokeLinecap="round"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>}
@@ -619,47 +339,17 @@ export default function UserActivityReport() {
             />
             <StatCard
               icon={<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#5b9cf6" strokeWidth="1.5" strokeLinecap="round"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l-2 2"/></svg>}
-              label="أول إجراء" value={firstAction ? fmtTime(firstAction.time) : "—"} sub="بداية النطاق" color="#5b9cf6"
+              label="أول إجراء" value={firstAction ? fmtTime(firstAction.time) : "—"} sub="صباحاً / مساءً" color="#5b9cf6"
             />
             <StatCard
               icon={<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#a78bfa" strokeWidth="1.5" strokeLinecap="round"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 1"/></svg>}
-              label="آخر إجراء" value={lastAction ? fmtTime(lastAction.time) : "—"} sub="نهاية النطاق" color="#a78bfa"
+              label="آخر إجراء" value={lastAction ? fmtTime(lastAction.time) : "—"} sub="صباحاً / مساءً" color="#a78bfa"
             />
             <StatCard
               icon={<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#fbbf24" strokeWidth="1.5" strokeLinecap="round"><path d="M2 4h4l2 2h6v7a1 1 0 01-1 1H3a1 1 0 01-1-1V4z"/></svg>}
               label="أقسام مختلفة" value={Object.keys(grouped).length} sub="قسم تم التعامل معه" color="#fbbf24"
             />
           </div>
-
-          {/* First / Last */}
-          {(firstAction || lastAction) && (
-            <div className="responsive-grid-halves" style={{ marginBottom: 18 }}>
-              {firstAction && (
-                <div style={{ ...S.card, padding: "14px 16px", borderTop: "2px solid #5b9cf6" }}>
-                  <div style={{ fontSize: 10, color: "#5b9cf6", fontWeight: 700, marginBottom: 8, letterSpacing: 1 }}>أول إجراء في النطاق</div>
-                  <div style={{ fontSize: 18, fontWeight: 900, color: "#e8edf5", marginBottom: 8, fontFamily: "'Cairo',sans-serif" }}>{fmtTime(firstAction.time)}</div>
-                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                    <span style={{ background: getActionStyle(firstAction.action).bg, color: getActionStyle(firstAction.action).color, padding: "2px 9px", borderRadius: 6, fontSize: 10, fontWeight: 700 }}>
-                      {getActionStyle(firstAction.action).label || firstAction.action}
-                    </span>
-                    <span style={{ fontSize: 11, color: "#6b7891" }}>{entityAr(firstAction.entity)}</span>
-                  </div>
-                </div>
-              )}
-              {lastAction && (
-                <div style={{ ...S.card, padding: "14px 16px", borderTop: "2px solid #a78bfa" }}>
-                  <div style={{ fontSize: 10, color: "#a78bfa", fontWeight: 700, marginBottom: 8, letterSpacing: 1 }}>آخر إجراء في النطاق</div>
-                  <div style={{ fontSize: 18, fontWeight: 900, color: "#e8edf5", marginBottom: 8, fontFamily: "'Cairo',sans-serif" }}>{fmtTime(lastAction.time)}</div>
-                  <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                    <span style={{ background: getActionStyle(lastAction.action).bg, color: getActionStyle(lastAction.action).color, padding: "2px 9px", borderRadius: 6, fontSize: 10, fontWeight: 700 }}>
-                      {getActionStyle(lastAction.action).label || lastAction.action}
-                    </span>
-                    <span style={{ fontSize: 11, color: "#6b7891" }}>{entityAr(lastAction.entity)}</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
 
           {/* Main grid */}
           <div className="responsive-grid-main">
@@ -672,7 +362,7 @@ export default function UserActivityReport() {
               <div style={{ ...S.card, maxHeight: 540, overflowY: "auto", overflowX: "hidden" }}>
                 {actions.length === 0 ? (
                   <div style={{ padding: 50, textAlign: "center", color: "#3d4a60", fontSize: 13 }}>
-                    لا توجد إجراءات في هذا النطاق
+                    لا توجد إجراءات مسجلة في هذا اليوم
                   </div>
                 ) : (
                   actions.map((a, i) => {
@@ -730,7 +420,7 @@ export default function UserActivityReport() {
                             {stats.delete > 0 && <span style={{ fontSize: 9, background: "rgba(248,113,113,.1)", color: "#f87171", padding: "2px 7px", borderRadius: 4, fontWeight: 700 }}>{stats.delete} حذف</span>}
                             {stats.view   > 0 && <span style={{ fontSize: 9, background: "rgba(148,163,184,.1)", color: "#94a3b8", padding: "2px 7px", borderRadius: 4, fontWeight: 700 }}>{stats.view} عرض</span>}
                           </div>
-                          <div style={{ fontSize: 9, color: "#3d4a60", marginTop: 5 }}>{pct}% من إجمالي النشاط</div>
+                          <div style={{ fontSize: 9, color: "#3d4a60", marginTop: 5 }}>{pct}% من نشاط اليوم</div>
                         </div>
                       )
                     })
@@ -755,8 +445,8 @@ export default function UserActivityReport() {
               <path d="M8 4V2M16 4V2M3 10h18M8 14h2M12 14h4"/>
             </svg>
           </div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: "#6b7891", marginBottom: 6 }}>اختر مستخدم ونطاق التاريخ</div>
-          <div style={{ fontSize: 12, color: "#3d4a60" }}>لعرض تقرير النشاط التفصيلي</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "#6b7891", marginBottom: 6 }}>اختر مستخدم وتاريخ</div>
+          <div style={{ fontSize: 12, color: "#3d4a60" }}>لعرض تقرير النشاط التفصيلي لليوم المحدد</div>
         </div>
       )}
     </div>
