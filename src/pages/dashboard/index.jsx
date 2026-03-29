@@ -725,7 +725,8 @@ function DetailsDrawer({ lead, onClose }) {
   const [followHistory, setFollowHistory] = useState([])
   const [loading, setLoading]             = useState(true)
   const [error, setError]                 = useState('')
-  const [tab, setTab]                     = useState('info')
+  const [tab, setTab] = useState(lead.openTab || 'info')
+
 
   useEffect(() => {
     ;(async () => {
@@ -1252,8 +1253,8 @@ export default function Dashboard() {
           <button onClick={() => setShowImport(true)} style={{ ...btnSec, height:36, padding:'0 12px', fontSize:13, display:'flex', alignItems:'center', gap:6 }}>
             <IconUpload /> استيراد
           </button>
-          <NotificationBell onOpenLead={(leadId) => {
-  setDrawer({ id: leadId, fullName: '' })
+       <NotificationBell onOpenLead={(leadId) => {
+  setDrawer({ id: leadId, fullName: '', openTab: 'notes' })
   setView('table')
 }} />
           {/* المستخدمين */}
