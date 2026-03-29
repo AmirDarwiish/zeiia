@@ -110,6 +110,7 @@ const App = () => (
         <Route path="/dashboard/login" element={<DashboardLogin />} />
         <Route path="/dashboard"       element={<Dashboard />} />
         <Route path="/dashboard/users" element={<UsersPage />} />  {/* ← جديد */}
+        <Route path="/dashboard/reports/activity" element={<UserActivityReport />} />
 
         {/* باقي الموقع — مع Navbar/Footer */}
         <Route path="/*" element={<AppRoutes />} />

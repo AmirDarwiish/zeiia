@@ -256,6 +256,7 @@ function PermissionCheckboxes({ all, selected, onChange }) {
 function UsersTab({ showToast }) {
   const [users, setUsers]       = useState([])
   const [roles, setRoles]       = useState([])
+  const navigate = useNavigate()  
   const [loading, setLoading]   = useState(true)
   const [modal, setModal]       = useState(null)
   const [selected, setSelected] = useState(null)
@@ -290,9 +291,13 @@ function UsersTab({ showToast }) {
           placeholder="بحث بالاسم أو الإيميل..."
           value={search} onChange={e => setSearch(e.target.value)}
         />
+            <button style={{ ...S.btnGhost, display:'flex', alignItems:'center', gap:6 }} onClick={() => navigate('/dashboard/reports/activity')}>
+    📊 تقارير النشاط
+  </button>
         <button style={S.btnGold} onClick={() => { setSelected(null); setModal('create') }}>+ مستخدم جديد</button>
-      </div>
+     
 
+      </div>
       <div style={S.card}>
         {loading
           ? <div style={{ padding:40, textAlign:'center', color:'#94a3b8' }}>جاري التحميل...</div>
