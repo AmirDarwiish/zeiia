@@ -19,8 +19,8 @@ export default function NotificationBell() {
     try {
       const res = await fetch(`${API_BASE_URL}/api/mentions/unread-count`, { headers: authHeaders() });
       if (res.ok) {
-    const data = await res.json();
-        setMentions(Array.isArray(data) ? data : (data?.data || data?.mentions || []));
+        const data = await res.json();
+        setUnreadCount(data.unreadCount ?? 0);
       }
     } catch (err) {}
   };
@@ -31,7 +31,7 @@ export default function NotificationBell() {
       const res = await fetch(`${API_BASE_URL}/api/mentions/mine`, { headers: authHeaders() });
       if (res.ok) {
         const data = await res.json();
-        setMentions(data);
+        setMentions(Array.isArray(data) ? data : (data?.data || data?.mentions || []));
       }
     } catch (err) {}
     finally { setLoading(false); }
