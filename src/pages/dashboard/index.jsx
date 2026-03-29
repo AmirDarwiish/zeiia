@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import API_BASE_URL from '../../config'
 import { useNavigate } from 'react-router-dom'
-import NotificationBell from './NotificationBell' // ده الـ Import الصح
+import NotificationBell from './NotificationBell'
 
 /* ════════════════════════════════
    CONSTANTS
@@ -36,6 +36,16 @@ const INTERACTION_TYPES = [
   { value: 3, label: 'واتساب' },
   { value: 4, label: 'اجتماع' },
   { value: 5, label: 'شكوى' },
+]
+
+const KANBAN_STATUSES = [
+  { id:1, key:'New',        label:'جديد',       color:'#38bdf8', bg:'rgba(56,189,248,.12)'  },
+  { id:2, key:'Contacted',  label:'تم التواصل', color:'#a78bfa', bg:'rgba(167,139,250,.12)' },
+  { id:3, key:'Interested', label:'مهتم',       color:'#C9A96E', bg:'rgba(201,169,110,.15)' },
+  { id:4, key:'FollowUp',   label:'متابعة',     color:'#fbbf24', bg:'rgba(251,191,36,.12)'  },
+  { id:5, key:'Converted',  label:'تم التحويل', color:'#34d399', bg:'rgba(52,211,153,.12)'  },
+  { id:6, key:'Lost',       label:'خسرنا',      color:'#f87171', bg:'rgba(248,113,113,.12)' },
+  { id:7, key:'Cold',       label:'بارد',       color:'#94a3b8', bg:'rgba(148,163,184,.12)' },
 ]
 
 /* ════════════════════════════════
@@ -82,8 +92,8 @@ const btnDanger = { height:38, padding:'0 16px', borderRadius:8, border:'1px sol
 /* ════════════════════════════════
    SVG ICONS
 ════════════════════════════════ */
-const Ico = ({ children, ...p }) => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
+const Ico = ({ children, size = 14, ...p }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
     {children}
   </svg>
 )
@@ -505,6 +515,7 @@ function NoteModal({ lead, onClose, onSuccess }) {
     </Modal>
   )
 }
+
 /* ════════════════════════════════
    TASK MODAL
 ════════════════════════════════ */
@@ -883,7 +894,6 @@ function DetailsDrawer({ lead, onClose }) {
   const [error, setError]                 = useState('')
   const [tab, setTab] = useState(lead.openTab || 'info')
 
-
   useEffect(() => {
     ;(async () => {
       try {
@@ -1041,60 +1051,280 @@ function DetailsDrawer({ lead, onClose }) {
 }
 
 /* ════════════════════════════════
-   KANBAN BOARD
+   KANBAN CARD QUICK ACTION BUTTON
+════════════════════════════════ */
+function KanbanActionBtn({ onClick, title, children }) {
+  const [hov, setHov] = useState(false)
+  return (
+    <button
+      onClick={onClick}
+      title={title}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        display:'flex', alignItems:'center', justifyContent:'center', gap:4,
+        height:26, padding:'0 8px', borderRadius:6,
+        border:`1px solid ${hov ? '#475569' : '#1e3a5f'}`,
+        background: hov ? 'rgba(255,255,255,.06)' : 'transparent',
+        color: hov ? '#e2e8f0' : '#475569',
+        cursor:'pointer', fontSize:11, fontFamily:"'Cairo',sans-serif",
+        transition:'all .12s', whiteSpace:'nowrap',
+      }}
+    >
+      {children}
+      <span style={{ fontSize:11 }}>{title}</span>
+    </button>
+  )
+}
+
+function KanbanWaBtn({ phone }) {
+  const [hov, setHov] = useState(false)
+  if (!phone) return null
+  return (
+    <a 
+      href={`https://wa.me/${phone.replace(/\D/g,'')}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      title="واتساب"
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        display:'flex', 
+        alignItems:'center', 
+        justifyContent:'center', 
+        gap:4,
+        height:26, 
+        padding:'0 8px', 
+        borderRadius:6,
+        border:`1px solid ${hov ? 'rgba(37,211,102,.5)' : 'rgba(37,211,102,.2)'}`,
+        background: hov ? 'rgba(37,211,102,.12)' : 'rgba(37,211,102,.05)',
+        color:'#25d366', 
+        cursor:'pointer', 
+        fontSize:11, 
+        fontFamily:"'Cairo',sans-serif",
+        transition:'all .12s', 
+        textDecoration:'none', 
+        whiteSpace:'nowrap',
+      }}
+    >
+      <WaIcon size={11} />
+      <span style={{ fontSize:11 }}>واتساب</span>
+    </a>
+  )
+}
+/* ════════════════════════════════
+   KANBAN CARD
+════════════════════════════════ */
+function KanbanCard({ lead, onDragStart, onDragEnd, onAction }) {
+  const [hov, setHov] = useState(false)
+  const fmtShort = d => d ? new Date(d).toLocaleDateString('ar-EG', { day:'numeric', month:'short' }) : null
+  const lastAct = fmtShort(lead.lastActivityAt)
+
+  return (
+    <div
+      draggable
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        background:'#0d1829',
+        border:`1px solid ${hov ? '#334155' : '#1e3a5f'}`,
+        borderRadius:10,
+        padding:'11px 13px',
+        cursor:'grab',
+        userSelect:'none',
+        transition:'border-color .15s, box-shadow .15s',
+        boxShadow: hov ? '0 4px 16px rgba(0,0,0,.3)' : 'none',
+      }}
+    >
+      {/* Name */}
+      <div style={{ fontSize:13, fontWeight:700, color:'#f1f5f9', marginBottom:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+        {lead.name || lead.fullName}
+      </div>
+
+      {/* Meta */}
+      {(lead.assignedUser?.fullName || lastAct) && (
+        <div style={{ fontSize:11, color:'#475569', marginBottom:9, display:'flex', gap:8, alignItems:'center' }}>
+          {lead.assignedUser?.fullName && (
+            <span style={{ display:'flex', alignItems:'center', gap:3 }}>
+              <IconUser size={10} />
+              {lead.assignedUser.fullName}
+            </span>
+          )}
+          {lastAct && <span>· {lastAct}</span>}
+        </div>
+      )}
+
+      {/* Divider */}
+      <div style={{ height:'1px', background:'#1e3a5f', margin:'0 0 9px' }} />
+
+      {/* Quick Actions */}
+      <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
+        <KanbanWaBtn phone={lead.phone} />
+        <KanbanActionBtn onClick={() => onAction('note',    lead)} title="ملاحظة"><IconNote size={11} /></KanbanActionBtn>
+        <KanbanActionBtn onClick={() => onAction('task',    lead)} title="مهمة"><IconTask size={11} /></KanbanActionBtn>
+        <KanbanActionBtn onClick={() => onAction('followup',lead)} title="متابعة"><IconCalendar size={11} /></KanbanActionBtn>
+        <KanbanActionBtn onClick={() => onAction('assign',  lead)} title="تعيين"><IconUser size={11} /></KanbanActionBtn>
+        <KanbanActionBtn onClick={() => onAction('details', lead)} title="تفاصيل"><IconEye size={11} /></KanbanActionBtn>
+      </div>
+    </div>
+  )
+}
+
+/* ════════════════════════════════
+   KANBAN BOARD  (drag-and-drop)
 ════════════════════════════════ */
 function KanbanBoard({ onAction }) {
-  const [pipeline, setPipeline] = useState([])
-  const [loading, setLoading]   = useState(true)
-  const [error, setError]       = useState('')
+  const [pipeline, setPipeline]       = useState([])
+  const [loading, setLoading]         = useState(true)
+  const [error, setError]             = useState('')
+  const [dragOverCol, setDragOverCol] = useState(null)
+  const [modal, setModal]             = useState(null)
+  const [toast, setToast]             = useState(null)
 
-  useEffect(() => {
-    ;(async () => {
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/leads/pipeline`, { headers:authHeaders(), credentials:'include' })
-        if (!res.ok) throw new Error(`خطأ ${res.status}`)
-        const data = await res.json()
-        setPipeline(Array.isArray(data) ? data : (data?.data || []))
-      } catch(e) { setError(e.message) }
-      finally { setLoading(false) }
-    })()
+  const dragged    = useRef(null)
+  const dragFromId = useRef(null)
+
+  const showToast = (msg, ok = true) => {
+    setToast({ msg, ok })
+    setTimeout(() => setToast(null), 2800)
+  }
+
+  const load = useCallback(async () => {
+    setLoading(true); setError('')
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/leads/pipeline`, { headers:authHeaders(), credentials:'include' })
+      if (!res.ok) throw new Error(`خطأ ${res.status}`)
+      const data = await res.json()
+      setPipeline(Array.isArray(data) ? data : (data?.data || []))
+    } catch(e) { setError(e.message) }
+    finally { setLoading(false) }
   }, [])
 
-  if (loading) return <div style={{ color:'#C9A96E', textAlign:'center', padding:60 }}>جاري تحميل البيب لاين...</div>
-  if (error)   return <div style={{ color:'#f87171', textAlign:'center', padding:40 }}>{error}</div>
+  useEffect(() => { load() }, [load])
 
-  const stageColor = { New:'#38bdf8', Contacted:'#a78bfa', Interested:'#C9A96E', FollowUp:'#fbbf24', Converted:'#34d399', Lost:'#f87171', Cold:'#94a3b8' }
+  const getLeads = statusId => {
+    const stage = pipeline.find(p => p.stageId === statusId)
+    return stage?.leads || []
+  }
+
+  const handleDragStart = (lead, statusId) => {
+    dragged.current    = lead
+    dragFromId.current = statusId
+  }
+
+  const handleDragEnd = () => {
+    dragged.current    = null
+    dragFromId.current = null
+    setDragOverCol(null)
+  }
+
+  const handleDrop = async (toStatusId) => {
+    setDragOverCol(null)
+    const lead   = dragged.current
+    const fromId = dragFromId.current
+    if (!lead || fromId === toStatusId) return
+
+    const toStatus = KANBAN_STATUSES.find(s => s.id === toStatusId)
+
+    /* Optimistic update */
+    setPipeline(prev => prev.map(stage => {
+      if (stage.stageId === fromId)
+        return { ...stage, leads: stage.leads.filter(l => l.id !== lead.id), totalLeads: Math.max(0, (stage.totalLeads || 1) - 1) }
+      if (stage.stageId === toStatusId)
+        return { ...stage, leads: [...(stage.leads || []), lead], totalLeads: (stage.totalLeads || 0) + 1 }
+      return stage
+    }))
+
+    showToast(`جاري نقل ${lead.name || lead.fullName} إلى ${toStatus?.label}...`)
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/leads/${lead.id}/status`, {
+        method:'PUT', headers:authHeaders(), credentials:'include',
+        body:JSON.stringify({ status: toStatusId }),
+      })
+      if (!res.ok) throw new Error(`خطأ ${res.status}`)
+      showToast(`تم نقل ${lead.name || lead.fullName} إلى ${toStatus?.label}`)
+    } catch(e) {
+      showToast(e.message, false)
+      load()
+    }
+  }
+
+  const handleCardAction = (type, lead) => {
+    if (type === 'details') {
+      onAction('details', { id: lead.id, fullName: lead.name || lead.fullName })
+      return
+    }
+    const normalizedLead = { ...lead, fullName: lead.name || lead.fullName }
+    setModal({ type, lead: normalizedLead })
+  }
+
+  const onModalSuccess = () => { setModal(null); showToast('تم الحفظ بنجاح') }
+
+  if (loading) return <div style={{ color:'#C9A96E', textAlign:'center', padding:60, fontFamily:"'Cairo',sans-serif" }}>جاري تحميل البيب لاين...</div>
+  if (error)   return <div style={{ color:'#f87171', textAlign:'center', padding:40,  fontFamily:"'Cairo',sans-serif" }}>{error}</div>
 
   return (
     <>
+      {/* Toast */}
+      {toast && (
+        <div style={{
+          position:'fixed', top:20, left:'50%', transform:'translateX(-50%)', zIndex:2000,
+          background: toast.ok ? 'rgba(52,211,153,.12)' : 'rgba(248,113,113,.12)',
+          border:`1px solid ${toast.ok ? '#34d399' : '#f87171'}`,
+          color: toast.ok ? '#34d399' : '#f87171',
+          borderRadius:10, padding:'9px 22px', fontSize:13, fontWeight:600,
+          boxShadow:'0 8px 24px rgba(0,0,0,.35)', pointerEvents:'none',
+          fontFamily:"'Cairo',sans-serif",
+        }}>{toast.msg}</div>
+      )}
+
       <style>{`.kb-sc::-webkit-scrollbar{height:6px}.kb-sc::-webkit-scrollbar-track{background:#0f172a}.kb-sc::-webkit-scrollbar-thumb{background:#334155;border-radius:3px}.kb-sc::-webkit-scrollbar-thumb:hover{background:#C9A96E}`}</style>
+
       <div className="kb-sc" style={{ overflowX:'auto', paddingBottom:12 }}>
-        <div style={{ display:'flex', gap:12, minWidth:'max-content', padding:'4px 2px 12px' }}>
-          {pipeline.map(stage => {
-            const color = stageColor[stage.stageName] || '#94a3b8'
+        <div style={{ display:'flex', gap:10, minWidth:'max-content', padding:'4px 2px 12px', alignItems:'flex-start' }}>
+          {KANBAN_STATUSES.map(s => {
+            const leads = getLeads(s.id)
+            const isOver = dragOverCol === s.id
             return (
-              <div key={stage.stageId} style={{ width:230, background:'#1e293b', border:'1px solid #334155', borderRadius:12, overflow:'hidden', flexShrink:0 }}>
-                <div style={{ padding:'10px 14px', borderBottom:'1px solid #334155', background:'rgba(15,23,42,.6)', borderTop:`3px solid ${color}` }}>
-                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                    <span style={{ fontSize:13, fontWeight:700, color:'#f1f5f9' }}>{BADGES[stage.stageName]?.label || stage.stageName}</span>
-                    <span style={{ background:`${color}22`, color, padding:'2px 8px', borderRadius:10, fontSize:11, fontWeight:700 }}>{stage.totalLeads}</span>
+              <div
+                key={s.id}
+                style={{ width:225, flexShrink:0, display:'flex', flexDirection:'column', borderRadius:12, background:'#1e293b', border:'1px solid #334155', overflow:'hidden' }}
+              >
+                {/* Column Header */}
+                <div style={{ padding:'10px 13px 9px', borderBottom:'1px solid #334155', borderTop:`3px solid ${s.color}`, background:'rgba(15,23,42,.5)' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                    <span style={{ fontSize:11, fontWeight:700, padding:'2px 9px', borderRadius:10, background:s.bg, color:s.color }}>{leads.length}</span>
+                    <span style={{ fontSize:13, fontWeight:700, color:'#e2e8f0' }}>{s.label}</span>
                   </div>
                 </div>
-                <div style={{ padding:8, display:'flex', flexDirection:'column', gap:8, maxHeight:500, overflowY:'auto' }}>
-                  {(!stage.leads || stage.leads.length === 0)
-                    ? <div style={{ color:'#475569', textAlign:'center', padding:'20px 0', fontSize:12 }}>لا يوجد</div>
-                    : stage.leads.map(l => (
-                      <div key={l.id} style={{ background:'#0f172a', border:'1px solid #334155', borderRadius:8, padding:'10px 12px' }}>
-                        <div style={{ fontSize:13, fontWeight:700, color:'#f1f5f9', marginBottom:4 }}>{l.name}</div>
-                        {l.assignedUser && <div style={{ fontSize:11, color:'#64748b', marginBottom:6 }}>{l.assignedUser.fullName}</div>}
-                        {l.lastActivityAt && <div style={{ fontSize:10, color:'#475569' }}>آخر نشاط: {fmt(l.lastActivityAt)}</div>}
-                        <div style={{ marginTop:8 }}>
-                          <button onClick={() => onAction('details', { id:l.id, fullName:l.name })}
-                            style={{ height:24, padding:'0 10px', borderRadius:5, border:'1px solid #334155', background:'transparent', color:'#94a3b8', fontSize:11, cursor:'pointer', fontFamily:"'Cairo',sans-serif" }}>
-                            التفاصيل
-                          </button>
-                        </div>
-                      </div>
+
+                {/* Drop zone */}
+                <div
+                  onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect='move'; setDragOverCol(s.id) }}
+                  onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget)) setDragOverCol(null) }}
+                  onDrop={() => handleDrop(s.id)}
+                  style={{
+                    flex:1, padding:8, display:'flex', flexDirection:'column', gap:7,
+                    minHeight:80, overflowY:'auto', maxHeight:560,
+                    background: isOver ? 'rgba(201,169,110,.05)' : 'transparent',
+                    border: isOver ? '1.5px dashed rgba(201,169,110,.35)' : '1.5px solid transparent',
+                    borderRadius: isOver ? 8 : 0,
+                    transition:'background .12s, border .12s',
+                  }}
+                >
+                  {leads.length === 0
+                    ? <div style={{ color:'#2d3f55', textAlign:'center', fontSize:12, padding:'18px 0', fontStyle:'italic' }}>لا يوجد</div>
+                    : leads.map(l => (
+                      <KanbanCard
+                        key={l.id}
+                        lead={l}
+                        onDragStart={() => handleDragStart(l, s.id)}
+                        onDragEnd={handleDragEnd}
+                        onAction={handleCardAction}
+                      />
                     ))
                   }
                 </div>
@@ -1103,6 +1333,12 @@ function KanbanBoard({ onAction }) {
           })}
         </div>
       </div>
+
+      {/* Kanban Modals */}
+      {modal?.type === 'note'     && <NoteModal     lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
+      {modal?.type === 'task'     && <TaskModal     lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
+      {modal?.type === 'followup' && <FollowUpModal lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
+      {modal?.type === 'assign'   && <AssignModal   lead={modal.lead} onClose={() => setModal(null)} onSuccess={onModalSuccess} />}
     </>
   )
 }
@@ -1162,8 +1398,8 @@ function FollowUpsView({ onAction }) {
 
   return (
     <>
-      <Section title="متابعات اليوم"  leads={today}   color="#C9A96E" empty="لا توجد متابعات اليوم" />
-      <Section title="متابعات متأخرة" leads={overdue}  color="#f87171" empty="لا توجد متابعات متأخرة" />
+      <Section title="متابعات اليوم"  leads={today}  color="#C9A96E" empty="لا توجد متابعات اليوم" />
+      <Section title="متابعات متأخرة" leads={overdue} color="#f87171" empty="لا توجد متابعات متأخرة" />
     </>
   )
 }
@@ -1352,10 +1588,8 @@ export default function Dashboard() {
     { id:'archived',  label:'الأرشيف',   Icon:IconArchive },
   ]
 
-  /* ── WhatsApp link helper ── */
-  const waHref = phone => `https://wa.me/${phone.replace(/\D/g,'')}`
-  const WaBtn  = ({ phone }) => phone ? (
-    <a href={waHref(phone)} target="_blank" rel="noopener noreferrer" title="تواصل عبر واتساب"
+  const WaBtn = ({ phone }) => phone ? (
+    <a href={`https://wa.me/${phone.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer" title="واتساب"
       style={{ display:'flex', alignItems:'center', justifyContent:'center', width:22, height:22, borderRadius:6, background:'rgba(37,211,102,.12)', flexShrink:0, textDecoration:'none', transition:'all .15s' }}
       onMouseEnter={e => { e.currentTarget.style.background='rgba(37,211,102,.3)'; e.currentTarget.style.transform='scale(1.12)' }}
       onMouseLeave={e => { e.currentTarget.style.background='rgba(37,211,102,.12)'; e.currentTarget.style.transform='scale(1)' }}
@@ -1395,25 +1629,19 @@ export default function Dashboard() {
         </div>
 
         <div style={{ display:'flex', gap:8, alignItems:'center', flexWrap:'wrap' }}>
-          {/* ليد جديد */}
           <button onClick={() => setShowCreate(true)} style={{ ...btnPrim, height:36, padding:'0 14px', fontSize:13, display:'flex', alignItems:'center', gap:6 }}>
             <IconAdd /> ليد جديد
           </button>
-          {/* تحديث */}
           <button onClick={loadLeads} style={{ ...btnSec, height:36, padding:'0 12px', fontSize:13 }}>تحديث</button>
-          {/* CSV */}
           <button onClick={exportCSV} style={{ ...btnSec, height:36, padding:'0 12px', fontSize:13 }}>CSV</button>
-          {/* Excel */}
           <button onClick={exportExcel} style={{ ...btnSec, height:36, padding:'0 12px', fontSize:13 }}>Excel</button>
-          {/* استيراد */}
           <button onClick={() => setShowImport(true)} style={{ ...btnSec, height:36, padding:'0 12px', fontSize:13, display:'flex', alignItems:'center', gap:6 }}>
             <IconUpload /> استيراد
           </button>
-       <NotificationBell onOpenLead={(leadId) => {
-  setDrawer({ id: leadId, fullName: '', openTab: 'notes' })
-  setView('table')
-}} />
-          {/* المستخدمين */}
+          <NotificationBell onOpenLead={(leadId) => {
+            setDrawer({ id: leadId, fullName: '', openTab: 'notes' })
+            setView('table')
+          }} />
           <button
             onClick={() => navigate('/dashboard/users')}
             title="إدارة المستخدمين"
@@ -1421,7 +1649,6 @@ export default function Dashboard() {
             onMouseEnter={e => { e.currentTarget.style.background='rgba(167,139,250,.2)'; e.currentTarget.style.borderColor='#a78bfa' }}
             onMouseLeave={e => { e.currentTarget.style.background='rgba(167,139,250,.08)'; e.currentTarget.style.borderColor='#334155' }}
           ><IconUser /></button>
-          {/* تسجيل الخروج */}
           <button
             onClick={handleLogout}
             title="تسجيل الخروج"
@@ -1509,13 +1736,11 @@ export default function Dashboard() {
                           onMouseEnter={e => Array.from(e.currentTarget.cells).forEach(c => c.style.background = 'rgba(201,169,110,.04)')}
                           onMouseLeave={e => Array.from(e.currentTarget.cells).forEach(c => c.style.background = '')}>
 
-                          {/* الاسم */}
                           <td style={{ fontSize:13, color:'#f1f5f9', textAlign:'right', padding:'12px 14px', borderBottom:'1px solid rgba(51,65,85,.4)', whiteSpace:'nowrap', maxWidth:180, overflow:'hidden', textOverflow:'ellipsis' }}>
                             {l.hasComplaint && <span style={{ display:'inline-block', width:7, height:7, borderRadius:'50%', background:'#f87171', marginLeft:5, verticalAlign:'middle' }} title="شكوى" />}
                             {l.fullName || 'unknown'}
                           </td>
 
-                          {/* التليفون + واتساب */}
                           <td style={{ fontSize:12, color:'#f1f5f9', textAlign:'right', padding:'12px 14px', borderBottom:'1px solid rgba(51,65,85,.4)', whiteSpace:'nowrap' }}>
                             <div style={{ display:'flex', alignItems:'center', gap:6 }}>
                               <span style={{ fontFamily:'monospace', letterSpacing:.5 }}>{l.phone || 'unknown'}</span>
@@ -1523,37 +1748,30 @@ export default function Dashboard() {
                             </div>
                           </td>
 
-                          {/* الحالة */}
                           <td style={{ padding:'12px 14px', borderBottom:'1px solid rgba(51,65,85,.4)', whiteSpace:'nowrap' }}>
                             <Badge status={resolveStatus(l.status)} />
                           </td>
 
-                          {/* المصدر */}
                           <td style={{ fontSize:13, color:'#f1f5f9', textAlign:'right', padding:'12px 14px', borderBottom:'1px solid rgba(51,65,85,.4)', whiteSpace:'nowrap' }}>
                             {l.source ? <span style={{ background:'rgba(201,169,110,.08)', color:'#C9A96E', padding:'2px 8px', borderRadius:6, fontSize:11 }}>{l.source}</span> : <span style={{ color:'#475569' }}>—</span>}
                           </td>
 
-                          {/* مسند لـ */}
                           <td style={{ fontSize:12, color:'#94a3b8', textAlign:'right', padding:'12px 14px', borderBottom:'1px solid rgba(51,65,85,.4)', whiteSpace:'nowrap' }}>
                             {l.assignedTo || <span style={{ color:'#475569', fontStyle:'italic' }}>غير مسند</span>}
                           </td>
 
-                          {/* آخر تفاعل */}
                           <td style={{ fontSize:12, color:'#94a3b8', textAlign:'right', padding:'12px 14px', borderBottom:'1px solid rgba(51,65,85,.4)', whiteSpace:'nowrap' }}>
                             {fmtI(l.lastInteractionDate, l.lastInteractionType)}
                           </td>
 
-                          {/* الإيميل */}
                           <td style={{ fontSize:12, color:'#64748b', textAlign:'right', padding:'12px 14px', borderBottom:'1px solid rgba(51,65,85,.4)', maxWidth:200, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                             {l.email || '—'}
                           </td>
 
-                          {/* تاريخ الإضافة */}
                           <td style={{ fontSize:12, color:'#94a3b8', textAlign:'right', padding:'12px 14px', borderBottom:'1px solid rgba(51,65,85,.4)', whiteSpace:'nowrap' }}>
                             {fmt(l.createdAt)}
                           </td>
 
-                          {/* إجراءات */}
                           <td style={{ padding:'10px 14px', borderBottom:'1px solid rgba(51,65,85,.4)', whiteSpace:'nowrap' }}>
                             <ActionMenu lead={l} onAction={handleAction} />
                           </td>
@@ -1580,7 +1798,6 @@ export default function Dashboard() {
                       </div>
 
                       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:12 }}>
-                        {/* التليفون + واتساب */}
                         <div style={{ display:'flex', flexDirection:'column', gap:2 }}>
                           <div style={{ fontSize:10, color:'#94a3b8', fontWeight:600, letterSpacing:.5 }}>التليفون</div>
                           <div style={{ display:'flex', alignItems:'center', gap:5 }}>
@@ -1588,7 +1805,6 @@ export default function Dashboard() {
                             <WaBtn phone={l.phone} />
                           </div>
                         </div>
-                        {/* باقي الفيلدز */}
                         {[
                           { label:'المصدر',  val: l.source    || '—' },
                           { label:'مسند لـ', val: l.assignedTo || 'غير مسند' },
