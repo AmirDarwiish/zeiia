@@ -1,7 +1,8 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import API_BASE_URL from '../../config'
 import { useNavigate } from 'react-router-dom'
-import NotificationBell from './NotificationBell';
+import NotificationBell from './NotificationBell' // ده الـ Import الصح
+
 /* ════════════════════════════════
    CONSTANTS
 ════════════════════════════════ */
@@ -1161,7 +1162,7 @@ export default function Dashboard() {
   }
 
   const stats = [
-    { label:'إجمالي الليدز', val: all.length,                                                     sub:'كل السجلات' },
+    { label:'إجمالي الليدز', val: all.length,                                              sub:'كل السجلات' },
     { label:'جدد',           val: all.filter(l => resolveStatus(l.status) === 'New').length,        sub:'New' },
     { label:'مهتمين',        val: all.filter(l => resolveStatus(l.status) === 'Interested').length, sub:'Interested' },
     { label:'تم التحويل',    val: all.filter(l => resolveStatus(l.status) === 'Converted').length,  sub:'Converted' },
@@ -1484,5 +1485,4 @@ export default function Dashboard() {
       {showImport && <ImportModal  onClose={() => setShowImport(false)} onSuccess={() => { setShowImport(false); showToast('تم الاستيراد بنجاح'); loadLeads() }} />}
     </div>
   )
-  
 }
