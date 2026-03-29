@@ -19,8 +19,8 @@ export default function NotificationBell() {
     try {
       const res = await fetch(`${API_BASE_URL}/api/mentions/unread-count`, { headers: authHeaders() });
       if (res.ok) {
-        const data = await res.json();
-        setUnreadCount(data.unreadCount);
+    const data = await res.json();
+        setMentions(Array.isArray(data) ? data : (data?.data || data?.mentions || []));
       }
     } catch (err) {}
   };
