@@ -383,7 +383,14 @@ export default function UserActivityReport() {
             />
             <StatCard
               icon={<svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="#2dd4a0" strokeWidth="1.5" strokeLinecap="round"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>}
-              label="ساعات النشاط" value={summary?.activeHours ?? 0} sub="ساعة عمل فعلية" color="#2dd4a0"
+              label="ساعات النشاط" value={(() => {
+              const h = summary?.activeHours ?? 0
+              const hours = Math.floor(h)
+              const mins = Math.round((h - hours) * 60)
+              if (hours === 0) return `${mins} د`
+              if (mins === 0) return `${hours} س`
+              return `${hours}س ${mins}د`
+                })()} sub="ساعة عمل فعلية" color="#2dd4a0"
             />
             <StatCard
               icon={<svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="#5b9cf6" strokeWidth="1.5" strokeLinecap="round"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l-2 2"/></svg>}
