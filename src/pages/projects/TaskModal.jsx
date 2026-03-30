@@ -726,7 +726,7 @@ function SubtasksTab({ task, projectId }) {
       const res = await createTask(projectId, {
         title: newTitle,
         parentTaskId: task.id,
-        boardId: task.boardId,
+        boardColumnId: task.boardColumnId,
         priority: "Medium",
       })
       setSubtasks((s) => [...s, res?.data || res])
