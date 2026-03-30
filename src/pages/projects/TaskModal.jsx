@@ -27,8 +27,8 @@ const PRIORITY_CFG = {
 const STATUS_CFG = {
   Todo:       { label: "للتنفيذ",    color: "#94a3b8" },
   InProgress: { label: "قيد التنفيذ", color: "#6ea8fe" },
-  Review:     { label: "مراجعة",     color: "#fbbf24" },
-  Done:       { label: "مكتمل",      color: "#34d399" },
+InReview:   { label: "مراجعة",     color: "#fbbf24" }, // غيرنا الكلمة هنا لـ InReview
+ Done:       { label: "مكتمل",      color: "#34d399" },
 }
 
 const TABS = [
@@ -724,10 +724,10 @@ function SubtasksTab({ task, projectId }) {
     setAdding(true)
     try {
 const res = await createTask(projectId, {
-  Title: newTitle,
+  title: newTitle,
   parentTaskId: task.id,
   boardColumnId: task.boardColumnId,
-  priority: 1
+  priority: task.priority
 })     
  setSubtasks((s) => [...s, res?.data || res])
       setNewTitle("")
