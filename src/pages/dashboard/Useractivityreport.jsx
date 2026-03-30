@@ -43,11 +43,11 @@ const fmtTime = (d) => {
 const toLocalISO = (dateStr) => {
   if (!dateStr) return "";
   const date = new Date(dateStr);
-  const y = date.getFullYear()
-  const m = String(date.getMonth() + 1).padStart(2, "0")
-  const d = String(date.getDate()).padStart(2, "0")
-  return `${y}-${m}-${d}`
-}
+  const y = date.toLocaleDateString("en-US", { timeZone: "Africa/Cairo", year: "numeric" });
+  const m = date.toLocaleDateString("en-US", { timeZone: "Africa/Cairo", month: "2-digit" });
+  const d = date.toLocaleDateString("en-US", { timeZone: "Africa/Cairo", day: "2-digit" });
+  return `${y}-${m}-${d}`;
+};
 
 // ─────────────────────────────────────────────
 // Action styles
@@ -165,7 +165,7 @@ export default function UserActivityReport() {
 
   const [users, setUsers]         = useState([])
   const [userId, setUserId]       = useState("")
-  const [selectedDate, setSelectedDate] = useState(toLocalISO(new Date().toISOString())) 
+  const [selectedDate, setSelectedDate] = useState(toLocalISO(new Date()))
   const [actions, setActions]     = useState([])
   const [summary, setSummary]     = useState(null)
   const [loading, setLoading]     = useState(false)
