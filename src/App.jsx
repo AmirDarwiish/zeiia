@@ -111,8 +111,10 @@ const App = () => (
         {/* الداشبورد — من غير Navbar/Footer */}
         <Route path="/dashboard/login" element={<DashboardLogin />} />
         <Route path="/dashboard"       element={<Dashboard />} />
-        <Route path="/dashboard/users" element={<UsersPage />} />  {/* ← جديد */}
+        <Route path="/dashboard/users" element={<UsersPage />} />  
         <Route path="/dashboard/reports/activity" element={<UserActivityReport />} />
+        <Route path="/dashboard/projects" element={<ProjectsList />} />
+        <Route path="/dashboard/projects/:id" element={<ProjectDetails />} /> 
 
         {/* باقي الموقع — مع Navbar/Footer */}
         <Route path="/*" element={<AppRoutes />} />
