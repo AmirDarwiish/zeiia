@@ -254,8 +254,10 @@ function KanbanColumn({ board, tasks, boards, projectId, onMoveTask, onDeleteTas
   const handleAdd = async () => {
     if (!title.trim()) return
     setSaving(true)
+    const priorityMap = { Low: 1, Medium: 2, High: 3, Critical: 4 };
     try {
-      await onAddTask({ title, priority, boardId: board.id })
+      await onAddTask({ title, priority: priorityMap[priority], boardId: board.id })
+
       setTitle(""); setPriority("Medium"); setAddOpen(false)
     } finally {
       setSaving(false)
