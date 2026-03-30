@@ -342,7 +342,13 @@ function CreateModal({ onClose, onCreate }) {
     if (!form.name.trim()) { setError("اسم البروجكت مطلوب"); return }
     setLoading(true); setError("")
     try {
-      const res = await createProject(form)
+      const payload = {
+  title: form.name,
+  description: form.description,
+  priority: ["Low", "Medium", "High", "Critical"].indexOf(form.priority)
+}
+
+const res = await createProject(payload)
       onCreate(res?.data || res)
       onClose()
     } catch (e) {
