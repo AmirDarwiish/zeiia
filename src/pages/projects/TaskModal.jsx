@@ -724,12 +724,12 @@ function SubtasksTab({ task, projectId }) {
     setAdding(true)
     try {
 const res = await createTask(projectId, {
-  title: newTitle,
+  Title: newTitle,
   parentTaskId: task.id,
   boardColumnId: task.boardColumnId,
   priority: 1
-})
-      setSubtasks((s) => [...s, res?.data || res])
+})     
+ setSubtasks((s) => [...s, res?.data || res])
       setNewTitle("")
     } catch (e) { alert(e.message) }
     finally { setAdding(false) }
