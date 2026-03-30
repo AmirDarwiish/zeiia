@@ -1,9 +1,4 @@
 import { useState, useEffect } from 'react';
-// ملاحظة: الـ index.jsx محتاج تضيف فيه السطرين دول:
-// import { useNavigate } from 'react-router-dom'   ← في الأعلى مع الـ imports
-// const navigate = useNavigate()                   ← جوه الـ Dashboard function
-// وفي الهيدر جنب زرار تسجيل الخروج:
-// <button onClick={() => navigate('/dashboard/users')} style={{...btnSec, height:36, padding:'0 12px', fontSize:13}}>المستخدمين</button>
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { LangProvider, useLang } from './context/LangContext';
 import ScrollToTop from './components/ScrollToTop';
@@ -22,7 +17,8 @@ import DashboardLogin from './pages/dashboard/login'
 import Dashboard      from './pages/dashboard/index'
 import UsersPage      from './pages/dashboard/users'   
 import UserActivityReport from './pages/dashboard/Useractivityreport'
-
+import ProjectsList   from './pages/projects/ProjectsList';   
+import ProjectDetails from './pages/projects/ProjectDetails'; 
 
 import './index.css';
 
