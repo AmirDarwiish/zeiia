@@ -12,7 +12,7 @@ const headers = () => ({
 
 export async function getProjects() {
   const res = await fetch(`${BASE}/api/projects`, { headers: headers() 
-    ,credentials: "include" // جرب ضيف السطر ده
+    ,credentials: "include" 
   });
   if (!res.ok) throw new Error(`getProjects: ${res.status}`);
   return res.json();
@@ -108,7 +108,9 @@ export async function createTask(projectId, body) {
   const res = await fetch(`${BASE}/api/projects/${projectId}/tasks`, {
     method: "POST",
     headers: headers(),
-    body: JSON.stringify(body),
+ body: JSON.stringify({
+      dto: body  
+    }),    
   });
   if (!res.ok) throw new Error(`createTask: ${res.status}`);
   return res.json();
