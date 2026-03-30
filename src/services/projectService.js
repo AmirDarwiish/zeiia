@@ -108,11 +108,14 @@ export async function createTask(projectId, body) {
   const res = await fetch(`${BASE}/api/projects/${projectId}/tasks`, {
     method: "POST",
     headers: headers(),
- body: JSON.stringify({
-      dto: body  
-    }),    
+    body: JSON.stringify(body),
+    
   });
-  if (!res.ok) throw new Error(`createTask: ${res.status}`);
+ if (!res.ok) {
+    // عشان لو حصل إيرور تاني نقدر نقراه بوضوح
+    const errText = await res.text();
+    throw new Error(`createTask: ${res.status} - ${errText}`);
+  }
   return res.json();
 }
 

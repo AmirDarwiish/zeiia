@@ -726,11 +726,14 @@ function SubtasksTab({ task, projectId }) {
         title: newTitle,                     // تم التعديل
         parentTaskId: task.id,
         boardColumnId: task.boardColumnId,
-        priority: task.priority || "Medium"  // تم التعديل لتجنب التثبيت
+        priority: 2 // تم التعديل لتجنب التثبيت
       })     
       setSubtasks((s) => [...s, res?.data || res])
       setNewTitle("")
-    } catch (e) { alert(e.message) }
+    } catch (e) {
+        console.error("❌ API Error:", e.response?.data || e.message);
+        alert(e.response?.data?.title || e.message)
+     }
     finally { setAdding(false) }
   }
 
