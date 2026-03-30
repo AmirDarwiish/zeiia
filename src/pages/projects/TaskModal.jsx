@@ -27,8 +27,8 @@ const PRIORITY_CFG = {
 const STATUS_CFG = {
   Todo:       { label: "للتنفيذ",    color: "#94a3b8" },
   InProgress: { label: "قيد التنفيذ", color: "#6ea8fe" },
-InReview:   { label: "مراجعة",     color: "#fbbf24" }, // غيرنا الكلمة هنا لـ InReview
- Done:       { label: "مكتمل",      color: "#34d399" },
+  InReview:   { label: "مراجعة",     color: "#fbbf24" }, // تم التعديل لتطابق الباك إند
+  Done:       { label: "مكتمل",      color: "#34d399" },
 }
 
 const TABS = [
@@ -104,6 +104,7 @@ const S = {
     cursor: "pointer", fontFamily: "'Cairo',sans-serif",
     display: "flex", alignItems: "center", gap: 6,
     transition: "opacity .2s",
+    whiteSpace: "nowrap"
   },
   btnGhost: {
     height: 32, padding: "0 12px", borderRadius: 7,
@@ -111,6 +112,7 @@ const S = {
     color: "#6b7891", fontSize: 11, cursor: "pointer",
     fontFamily: "'Cairo',sans-serif",
     display: "flex", alignItems: "center", gap: 5,
+    whiteSpace: "nowrap"
   },
 }
 
@@ -150,7 +152,6 @@ function DetailsTab({ task, projectId, onUpdated }) {
     <div>
       {!editing ? (
         <>
-          {/* View mode */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {p && (
@@ -184,7 +185,6 @@ function DetailsTab({ task, projectId, onUpdated }) {
           )}
         </>
       ) : (
-        /* Edit mode */
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div>
             <label style={S.lbl}>عنوان المهمة</label>
@@ -194,7 +194,8 @@ function DetailsTab({ task, projectId, onUpdated }) {
             <label style={S.lbl}>الوصف</label>
             <textarea style={{ ...S.textarea, minHeight: 100 }} value={form.description} onChange={(e) => set("description", e.target.value)} onFocus={focusGold} onBlur={blurNorm} />
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+          {/* استخدام كلاس responsive-grid لضبط العرض على الموبايل */}
+          <div className="responsive-grid">
             <div>
               <label style={S.lbl}>الأولوية</label>
               <select style={S.select} value={form.priority} onChange={(e) => set("priority", e.target.value)}>
@@ -278,7 +279,6 @@ function CommentsTab({ taskId }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-      {/* Comments list */}
       <div style={{ maxHeight: 340, overflowY: "auto", paddingRight: 4, marginBottom: 16 }} className="custom-scroll">
         {comments.length === 0 ? (
           <div style={{ textAlign: "center", padding: "40px 0", color: "#6b7891", fontSize: 13 }}>
@@ -294,7 +294,7 @@ function CommentsTab({ taskId }) {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <div style={{
-                  width: 28, height: 28, borderRadius: "50%",
+                  width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
                   background: "rgba(201,169,110,0.14)",
                   display: "flex", alignItems: "center", justifyContent: "center",
                   color: "#C9A96E", fontWeight: 800, fontSize: 12,
@@ -302,7 +302,7 @@ function CommentsTab({ taskId }) {
                   {(c.author?.fullName || c.authorName || "؟")[0]}
                 </div>
                 <div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "#e8edf5" }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#e8edf5", wordBreak: "break-word" }}>
                     {c.author?.fullName || c.authorName || "مجهول"}
                   </div>
                   <div style={{ fontSize: 10, color: "#6b7891" }}>{fmtDateTime(c.createdAt)}</div>
@@ -340,7 +340,7 @@ function CommentsTab({ taskId }) {
                 </div>
               </div>
             ) : (
-              <p style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.7, margin: 0, whiteSpace: "pre-wrap" }}>
+              <p style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.7, margin: 0, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
                 {c.content}
               </p>
             )}
@@ -349,7 +349,6 @@ function CommentsTab({ taskId }) {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
       <div style={{ display: "flex", gap: 8 }}>
         <textarea
           style={{ ...S.textarea, flex: 1, minHeight: 60, resize: "none" }}
@@ -465,7 +464,7 @@ function TimeTab({ taskId }) {
         }}>
           {fmtElapsed(elapsed)}
         </div>
-        <div style={{ display: "flex", justifyContent: "center", gap: 10 }}>
+        <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: 10 }}>
           {!activeLog ? (
             <button onClick={handleStart} style={S.btnGold}>
               <Play size={14} /> بدء التتبع
@@ -499,7 +498,7 @@ function TimeTab({ taskId }) {
             exit={{ height: 0, opacity: 0 }} style={{ overflow: "hidden", marginBottom: 14 }}
           >
             <div style={{ ...S.card, padding: 16 }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 100px", gap: 10, marginBottom: 10 }}>
+              <div className="responsive-grid-manual" style={{ marginBottom: 10 }}>
                 <div>
                   <label style={S.lbl}>وصف الوقت (اختياري)</label>
                   <input
@@ -544,12 +543,12 @@ function TimeTab({ taskId }) {
             }}
           >
             <div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "#e8edf5", marginBottom: 2 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#e8edf5", marginBottom: 2, wordBreak: "break-word" }}>
                 {log.description || "وقت عمل"}
               </div>
               <div style={{ fontSize: 10, color: "#6b7891" }}>{fmtDateTime(log.startTime || log.createdAt)}</div>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
               <span style={{ fontSize: 13, color: "#C9A96E", fontWeight: 800 }}>
                 {fmtMinutes(log.durationMinutes || log.duration)}
               </span>
@@ -686,7 +685,7 @@ function AttachmentsTab({ taskId }) {
                 {fmtSize(f.fileSize || f.size)} · {fmtDateTime(f.uploadedAt || f.createdAt)}
               </div>
             </div>
-            <div style={{ display: "flex", gap: 6 }}>
+            <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
               {(f.url || f.fileUrl) && (
                 <a
                   href={f.url || f.fileUrl}
@@ -723,13 +722,13 @@ function SubtasksTab({ task, projectId }) {
     if (!newTitle.trim()) return
     setAdding(true)
     try {
-const res = await createTask(projectId, {
-  title: newTitle,
-  parentTaskId: task.id,
-  boardColumnId: task.boardColumnId,
-  priority: task.priority
-})     
- setSubtasks((s) => [...s, res?.data || res])
+      const res = await createTask(projectId, {
+        title: newTitle,                     // تم التعديل
+        parentTaskId: task.id,
+        boardColumnId: task.boardColumnId,
+        priority: task.priority || "Medium"  // تم التعديل لتجنب التثبيت
+      })     
+      setSubtasks((s) => [...s, res?.data || res])
       setNewTitle("")
     } catch (e) { alert(e.message) }
     finally { setAdding(false) }
@@ -821,7 +820,7 @@ const res = await createTask(projectId, {
               <span style={{
                 flex: 1, fontSize: 13, color: s.status === "Done" ? "#6b7891" : "#e8edf5",
                 textDecoration: s.status === "Done" ? "line-through" : "none",
-                transition: "all .2s",
+                transition: "all .2s", wordBreak: "break-word"
               }}>
                 {s.title}
               </span>
@@ -829,14 +828,14 @@ const res = await createTask(projectId, {
                 <span style={{
                   fontSize: 10, color: PRIORITY_CFG[s.priority].color,
                   background: `${PRIORITY_CFG[s.priority].color}14`,
-                  padding: "2px 7px", borderRadius: 5, fontWeight: 700,
+                  padding: "2px 7px", borderRadius: 5, fontWeight: 700, flexShrink: 0
                 }}>
                   {PRIORITY_CFG[s.priority].label}
                 </span>
               )}
               <button
                 onClick={() => handleDelete(s.id)}
-                style={{ ...S.btnGhost, height: 26, padding: "0 7px", color: "#f8717160" }}
+                style={{ ...S.btnGhost, height: 26, padding: "0 7px", color: "#f8717160", flexShrink: 0 }}
               >
                 <Trash2 size={11} />
               </button>
@@ -889,9 +888,39 @@ export default function TaskModal({ taskId, projectId, onClose, onUpdated }) {
         .custom-scroll::-webkit-scrollbar-thumb { background: rgba(201,169,110,.2); border-radius: 10px; }
         .custom-scroll::-webkit-scrollbar-thumb:hover { background: rgba(201,169,110,.5); }
         ::-webkit-calendar-picker-indicator { filter: invert(0.8); }
+
+        /* Mobile Adjustments */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+        
+        .responsive-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 10px;
+        }
+
+        .responsive-grid-manual {
+          display: grid;
+          grid-template-columns: 1fr 100px;
+          gap: 10px;
+        }
+
+        @media (max-width: 600px) {
+          .modal-overlay { padding: 0 !important; }
+          .modal-content { 
+            width: 100% !important; 
+            max-height: 100dvh !important; 
+            height: 100dvh !important;
+            border-radius: 0 !important;
+            border: none !important;
+          }
+          .responsive-grid { grid-template-columns: 1fr !important; gap: 14px; }
+          .responsive-grid-manual { grid-template-columns: 1fr !important; }
+        }
       `}</style>
 
       <motion.div
+        className="modal-overlay"
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         style={{
           position: "fixed", inset: 0, zIndex: 300,
@@ -902,6 +931,7 @@ export default function TaskModal({ taskId, projectId, onClose, onUpdated }) {
         onClick={onClose}
       >
         <motion.div
+          className="modal-content"
           initial={{ scale: 0.9, y: 24 }} animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.9, y: 24 }} transition={{ type: "spring", damping: 22 }}
           style={{
@@ -938,7 +968,7 @@ export default function TaskModal({ taskId, projectId, onClose, onUpdated }) {
                     <div style={{ fontSize: 11, color: "#6b7891", marginBottom: 6 }}>
                       تاسك #{task.id}
                     </div>
-                    <h2 style={{ fontSize: 18, fontWeight: 900, color: "#e8edf5", margin: 0, lineHeight: 1.4 }}>
+                    <h2 style={{ fontSize: 18, fontWeight: 900, color: "#e8edf5", margin: 0, lineHeight: 1.4, wordBreak: "break-word" }}>
                       {task.title}
                     </h2>
                   </div>
@@ -948,14 +978,14 @@ export default function TaskModal({ taskId, projectId, onClose, onUpdated }) {
                 </div>
 
                 {/* Tabs */}
-                <div style={{ display: "flex", gap: 2, overflowX: "auto", paddingBottom: 1 }}>
+                <div className="hide-scrollbar" style={{ display: "flex", gap: 2, overflowX: "auto", paddingBottom: 1 }}>
                   {TABS.map((tab) => (
                     <button
                       key={tab.key}
                       onClick={() => setActiveTab(tab.key)}
                       style={{
-                        display: "flex", alignItems: "center", gap: 6,
-                        padding: "8px 14px", borderRadius: "8px 8px 0 0",
+                        display: "flex", alignItems: "center", gap: 6, flexShrink: 0,
+                        padding: "10px 14px", borderRadius: "8px 8px 0 0",
                         border: "none", cursor: "pointer", whiteSpace: "nowrap",
                         background: activeTab === tab.key ? "#080d16" : "transparent",
                         color: activeTab === tab.key ? "#C9A96E" : "#6b7891",
