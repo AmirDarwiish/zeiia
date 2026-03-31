@@ -167,13 +167,19 @@ export default function ProjectStats({ projectId }) {
 
   if (!stats) return null
 
-  const {
-    TotalTasks = 0, CompletedTasks = 0, InProgressTasks = 0,
-    OverdueTasks = 0, DueSoonTasks = 0, CompletionPercentage = 0,
-    TotalLoggedHours = 0, TotalEstimatedHours = 0,
-    StatusBreakdown = [], PriorityBreakdown = [],
-    TopMembers = [], ActiveSprintStats = null,
-  } = stats
+  // Safety Fallback: Smart Mapping 
+  const total_tasks = stats.TotalTasks || stats.totalTasks || 0;
+  const completed_tasks = stats.CompletedTasks || stats.completedTasks || stats.doneTasks || 0;
+  const in_progress_tasks = stats.InProgressTasks || stats.inProgressTasks || stats.inProgress || 0;
+  const overdue_tasks = stats.OverdueTasks || stats.overdueTasks || 0;
+  const due_soon_tasks = stats.DueSoonTasks || stats.dueSoonTasks || 0;
+  const completion_percentage = stats.CompletionPercentage || stats.completionPercentage || stats.progressPercent || 0;
+  const total_logged_hours = stats.TotalLoggedHours || stats.totalLoggedHours || stats.totalTimeLogged || 0;
+  const total_estimated_hours = stats.TotalEstimatedHours || stats.totalEstimatedHours || 0;
+  const status_breakdown = stats.StatusBreakdown || stats.statusBreakdown || [];
+  const priority_breakdown = stats.PriorityBreakdown || stats.priorityBreakdown || [];
+  const top_members = stats.TopMembers || stats.topMembers || [];
+  const active_sprint_stats = stats.ActiveSprintStats || stats.activeSprintStats || null;
 
   return (
     <div style={{ direction: "rtl", fontFamily: "'Cairo', sans-serif" }}>
@@ -185,16 +191,16 @@ export default function ProjectStats({ projectId }) {
         gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
         gap: 12, marginBottom: 24,
       }}>
-        <StatCard label="إجمالي التاسكات"  value={TotalTasks}         color="#C9A96E" delay={0}    icon={<BarChart2   size={18} color="#C9A96E" />} />
-        <StatCard label="مكتملة"           value={CompletedTasks}     color="#34d399" delay={0.05} icon={<CheckCircle2 size={18} color="#34d399" />} />
-        <StatCard label="قيد التنفيذ"      value={InProgressTasks}    color="#6ea8fe" delay={0.1}  icon={<TrendingUp   size={18} color="#6ea8fe" />} />
-        <StatCard label="متأخرة"           value={OverdueTasks}       color="#f87171" delay={0.15} icon={<AlertTriangle size={18} color="#f87171" />} sub={OverdueTasks > 0 ? "تحتاج انتباه" : undefined} />
-        <StatCard label="تنتهي قريباً"     value={DueSoonTasks}       color="#fbbf24" delay={0.2}  icon={<Calendar     size={18} color="#fbbf24" />} />
-        <StatCard label="ساعات مسجلة"      value={fmtHours(TotalLoggedHours)} color="#e879f9" delay={0.25} icon={<Timer size={18} color="#e879f9" />} sub={TotalEstimatedHours ? `من ${fmtHours(TotalEstimatedHours)} مقدر` : undefined} />
+        <StatCard label="إجمالي التاسكات"  value={total_tasks}         color="#C9A96E" delay={0}    icon={<BarChart2   size={18} color="#C9A96E" />} />
+        <StatCard label="مكتملة"           value={completed_tasks}     color="#34d399" delay={0.05} icon={<CheckCircle2 size={18} color="#34d399" />} />
+        <StatCard label="قيد التنفيذ"      value={in_progress_tasks}   color="#6ea8fe" delay={0.1}  icon={<TrendingUp   size={18} color="#6ea8fe" />} />
+        <StatCard label="متأخرة"           value={overdue_tasks}       color="#f87171" delay={0.15} icon={<AlertTriangle size={18} color="#f87171" />} sub={overdue_tasks > 0 ? "تحتاج انتباه" : undefined} />
+        <StatCard label="تنتهي قريباً"     value={due_soon_tasks}      color="#fbbf24" delay={0.2}  icon={<Calendar     size={18} color="#fbbf24" />} />
+        <StatCard label="ساعات مسجلة"      value={fmtHours(total_logged_hours)} color="#e879f9" delay={0.25} icon={<Timer size={18} color="#e879f9" />} sub={total_estimated_hours ? `من ${fmtHours(total_estimated_hours)} مقدر` : undefined} />
       </div>
 
       {/* ── نسبة الإنجاز + Sprint ── */}
-      <div style={{ display: "grid", gridTemplateColumns: ActiveSprintStats ? "1fr 1fr" : "1fr", gap: 16, marginBottom: 24 }}>
+      <div style={{ display: "grid", gridTemplateColumns: active_sprint_stats ? "1fr 1fr" : "1fr", gap: 16, marginBottom: 24 }}>
 
         {/* نسبة الإنجاز */}
         <motion.div
@@ -202,23 +208,23 @@ export default function ProjectStats({ projectId }) {
           style={{ ...S.card, padding: "24px", display: "flex", alignItems: "center", gap: 24 }}
         >
           <div style={{ position: "relative", flexShrink: 0 }}>
-            <ProgressRing pct={CompletionPercentage} size={100} color={CompletionPercentage === 100 ? "#34d399" : "#C9A96E"} />
+            <ProgressRing pct={completion_percentage} size={100} color={completion_percentage === 100 ? "#34d399" : "#C9A96E"} />
             <div style={{
               position: "absolute", inset: 0,
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: 18, fontWeight: 900, color: "#e8edf5",
             }}>
-              {CompletionPercentage}%
+              {completion_percentage}%
             </div>
           </div>
           <div>
             <div style={{ fontSize: 16, fontWeight: 900, color: "#e8edf5", marginBottom: 6 }}>نسبة الإنجاز</div>
             <div style={{ fontSize: 12, color: "#6b7891", lineHeight: 1.8 }}>
-              <span style={{ color: "#34d399", fontWeight: 800 }}>{CompletedTasks}</span> مكتملة
+              <span style={{ color: "#34d399", fontWeight: 800 }}>{completed_tasks}</span> مكتملة
               {" · "}
-              <span style={{ color: "#6ea8fe", fontWeight: 800 }}>{TotalTasks - CompletedTasks}</span> متبقية
+              <span style={{ color: "#6ea8fe", fontWeight: 800 }}>{total_tasks - completed_tasks}</span> متبقية
             </div>
-            {CompletionPercentage === 100 && (
+            {completion_percentage === 100 && (
               <div style={{ marginTop: 8, fontSize: 11, color: "#34d399", fontWeight: 700 }}>
                 🎉 البروجكت مكتمل!
               </div>
@@ -227,7 +233,7 @@ export default function ProjectStats({ projectId }) {
         </motion.div>
 
         {/* Sprint النشط */}
-        {ActiveSprintStats && (
+        {active_sprint_stats && (
           <motion.div
             initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
             style={{ ...S.card, padding: "24px", position: "relative", overflow: "hidden" }}
@@ -241,26 +247,26 @@ export default function ProjectStats({ projectId }) {
               <span style={{ fontSize: 13, fontWeight: 800, color: "#34d399" }}>السبرينت النشط</span>
             </div>
             <div style={{ fontSize: 15, fontWeight: 900, color: "#e8edf5", marginBottom: 12 }}>
-              {ActiveSprintStats.Name}
+              {active_sprint_stats.Name || active_sprint_stats.name}
             </div>
             <div style={{ height: 6, background: "rgba(255,255,255,0.05)", borderRadius: 4, overflow: "hidden", marginBottom: 10 }}>
               <motion.div
                 initial={{ width: 0 }}
-                animate={{ width: `${ActiveSprintStats.CompletionPercentage}%` }}
+                animate={{ width: `${active_sprint_stats.CompletionPercentage || active_sprint_stats.completionPercentage || 0}%` }}
                 transition={{ duration: 0.8, delay: 0.5 }}
                 style={{ height: "100%", background: "#34d399", borderRadius: 4 }}
               />
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#6b7891" }}>
-              <span><span style={{ color: "#34d399", fontWeight: 800 }}>{ActiveSprintStats.CompletedTasks}</span> / {ActiveSprintStats.TotalTasks} تاسك</span>
-              <span style={{ color: "#34d399", fontWeight: 800 }}>{ActiveSprintStats.CompletionPercentage}%</span>
+              <span><span style={{ color: "#34d399", fontWeight: 800 }}>{active_sprint_stats.CompletedTasks || active_sprint_stats.completedTasks || 0}</span> / {active_sprint_stats.TotalTasks || active_sprint_stats.totalTasks || 0} تاسك</span>
+              <span style={{ color: "#34d399", fontWeight: 800 }}>{active_sprint_stats.CompletionPercentage || active_sprint_stats.completionPercentage || 0}%</span>
             </div>
-            {(ActiveSprintStats.StartDate || ActiveSprintStats.EndDate) && (
+            {(active_sprint_stats.StartDate || active_sprint_stats.startDate || active_sprint_stats.EndDate || active_sprint_stats.endDate) && (
               <div style={{ marginTop: 10, fontSize: 11, color: "#6b7891", display: "flex", alignItems: "center", gap: 5 }}>
                 <Calendar size={11} color="#6b7891" />
-                {ActiveSprintStats.EndDate
-                  ? `ينتهي ${new Date(ActiveSprintStats.EndDate).toLocaleDateString("ar-EG")}`
-                  : `بدأ ${new Date(ActiveSprintStats.StartDate).toLocaleDateString("ar-EG")}`
+                {(active_sprint_stats.EndDate || active_sprint_stats.endDate)
+                  ? `ينتهي ${new Date(active_sprint_stats.EndDate || active_sprint_stats.endDate).toLocaleDateString("ar-EG")}`
+                  : `بدأ ${new Date(active_sprint_stats.StartDate || active_sprint_stats.startDate).toLocaleDateString("ar-EG")}`
                 }
               </div>
             )}
@@ -280,16 +286,18 @@ export default function ProjectStats({ projectId }) {
             <Target size={15} color="#C9A96E" />
             <span style={{ fontSize: 13, fontWeight: 800, color: "#e8edf5" }}>توزيع الحالات</span>
           </div>
-          {StatusBreakdown.length === 0 ? (
+          {status_breakdown.length === 0 ? (
             <div style={{ fontSize: 12, color: "#6b7891", textAlign: "center", padding: "20px 0" }}>لا توجد بيانات</div>
-          ) : StatusBreakdown.map((s, i) => {
-            const cfg = STATUS_AR[s.status] || { label: s.status, color: "#94a3b8" }
+          ) : status_breakdown.map((s, i) => {
+            const statusName = s.status || s.Status || "Todo";
+            const statusCount = s.count || s.Count || 0;
+            const cfg = STATUS_AR[statusName] || { label: statusName, color: "#94a3b8" }
             return (
               <BarRow
-                key={s.status}
+                key={statusName}
                 label={cfg.label}
-                count={s.count}
-                total={TotalTasks}
+                count={statusCount}
+                total={total_tasks}
                 color={cfg.color}
                 delay={0.4 + i * 0.06}
               />
@@ -306,16 +314,18 @@ export default function ProjectStats({ projectId }) {
             <Flag size={15} color="#f87171" />
             <span style={{ fontSize: 13, fontWeight: 800, color: "#e8edf5" }}>توزيع الأولويات</span>
           </div>
-          {PriorityBreakdown.length === 0 ? (
+          {priority_breakdown.length === 0 ? (
             <div style={{ fontSize: 12, color: "#6b7891", textAlign: "center", padding: "20px 0" }}>لا توجد بيانات</div>
-          ) : PriorityBreakdown.map((p, i) => {
-            const cfg = PRIORITY_AR[p.priority] || { label: p.priority, color: "#94a3b8" }
+          ) : priority_breakdown.map((p, i) => {
+            const priorityName = p.priority || p.Priority || "Medium";
+            const priorityCount = p.count || p.Count || 0;
+            const cfg = PRIORITY_AR[priorityName] || { label: priorityName, color: "#94a3b8" }
             return (
               <BarRow
-                key={p.priority}
+                key={priorityName}
                 label={cfg.label}
-                count={p.count}
-                total={TotalTasks}
+                count={priorityCount}
+                total={total_tasks}
                 color={cfg.color}
                 delay={0.45 + i * 0.06}
               />
@@ -325,7 +335,7 @@ export default function ProjectStats({ projectId }) {
       </div>
 
       {/* ── أكتر الأعضاء نشاطاً ── */}
-      {TopMembers.length > 0 && (
+      {top_members.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}
           style={{ ...S.card, padding: "20px 24px" }}
@@ -335,14 +345,16 @@ export default function ProjectStats({ projectId }) {
             <span style={{ fontSize: 13, fontWeight: 800, color: "#e8edf5" }}>أكتر الأعضاء نشاطاً</span>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {TopMembers.map((m, i) => {
-              const roleCfg = ROLE_AR[m.role] || ROLE_AR.Member
-              const pct = m.AssignedTasks > 0
-                ? Math.round((m.CompletedTasks / m.AssignedTasks) * 100)
-                : 0
+            {top_members.map((m, i) => {
+              const memberId = m.UserId || m.userId;
+              const roleCfg = ROLE_AR[m.role || m.Role] || ROLE_AR.Member
+              const mAssigned = m.AssignedTasks || m.assignedTasks || 0;
+              const mCompleted = m.CompletedTasks || m.completedTasks || m.tasksCompleted || 0;
+              const pct = mAssigned > 0 ? Math.round((mCompleted / mAssigned) * 100) : 0
+              
               return (
                 <motion.div
-                  key={m.UserId}
+                  key={memberId || i}
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.55 + i * 0.06 }}
@@ -361,13 +373,13 @@ export default function ProjectStats({ projectId }) {
                     display: "flex", alignItems: "center", justifyContent: "center",
                     fontSize: 13, fontWeight: 800, color: roleCfg.color,
                   }}>
-                    {m.UserId}
+                    {memberId || "?"}
                   </div>
 
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
                       <span style={{ fontSize: 12, fontWeight: 700, color: "#e8edf5" }}>
-                        مستخدم #{m.UserId}
+                        مستخدم #{memberId}
                       </span>
                       <span style={{
                         fontSize: 10, fontWeight: 700,
@@ -391,7 +403,7 @@ export default function ProjectStats({ projectId }) {
 
                   <div style={{ textAlign: "left", flexShrink: 0 }}>
                     <div style={{ fontSize: 12, fontWeight: 800, color: "#e8edf5" }}>
-                      {m.CompletedTasks}/{m.AssignedTasks}
+                      {mCompleted}/{mAssigned}
                     </div>
                     <div style={{ fontSize: 10, color: "#6b7891" }}>مكتمل</div>
                   </div>

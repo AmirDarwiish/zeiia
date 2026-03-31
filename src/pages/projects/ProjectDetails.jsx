@@ -764,13 +764,22 @@ function StatsTab({ projectId }) {
   )
   if (!stats) return <div style={{ textAlign: "center", padding: 60, color: "#6b7891" }}>لا توجد بيانات</div>
 
+  // Safety Fallback: Smart Mapping لضمان قراءة البيانات أياً كان شكل الـ Case من الـ API
+  const total_tasks = stats.totalTasks || stats.TotalTasks || 0;
+  const completed_tasks = stats.completedTasks || stats.CompletedTasks || stats.doneTasks || 0;
+  const in_progress_tasks = stats.inProgressTasks || stats.InProgressTasks || stats.inProgress || 0;
+  const overdue_tasks = stats.overdueTasks || stats.OverdueTasks || 0;
+  const completion_percentage = stats.completionPercentage || stats.CompletionPercentage || stats.progressPercent || 0;
+  const total_logged_hours = stats.totalLoggedHours || stats.TotalLoggedHours || stats.totalTimeLogged || 0;
+  const top_members = stats.topMembers || stats.TopMembers || [];
+
   const cards = [
-    { label: "إجمالي المهام",  value: stats.totalTasks   ?? 0,    color: "#C9A96E" },
-    { label: "مكتملة",         value: stats.doneTasks    ?? 0,    color: "#34d399" },
-    { label: "متأخرة",         value: stats.overdueTasks ?? 0,    color: "#f87171" },
-    { label: "قيد التنفيذ",    value: stats.inProgress   ?? 0,    color: "#6ea8fe" },
-    { label: "نسبة الإنجاز",   value: `${stats.progressPercent ?? 0}%`, color: "#a78bfa" },
-    { label: "ساعات مسجلة",    value: stats.totalTimeLogged ? `${Math.round(stats.totalTimeLogged / 60)}س` : "0س", color: "#fbbf24" },
+    { label: "إجمالي المهام",  value: total_tasks,      color: "#C9A96E" },
+    { label: "مكتملة",         value: completed_tasks,  color: "#34d399" },
+    { label: "متأخرة",         value: overdue_tasks,    color: "#f87171" },
+    { label: "قيد التنفيذ",    value: in_progress_tasks, color: "#6ea8fe" },
+    { label: "نسبة الإنجاز",   value: `${completion_percentage}%`, color: "#a78bfa" },
+    { label: "ساعات مسجلة",    value: total_logged_hours ? `${Math.round(total_logged_hours / 60)}س` : "0س", color: "#fbbf24" },
   ]
 
   return (
@@ -792,38 +801,43 @@ function StatsTab({ projectId }) {
 
       <ProjectStats projectId={projectId} />
 
-      {stats.topMembers?.length > 0 && (
+      {top_members.length > 0 && (
         <div style={{ ...S.card, padding: "18px 20px", marginTop: 24 }}>
           <div style={{ fontSize: 13, fontWeight: 800, color: "#C9A96E", marginBottom: 14, display: "flex", alignItems: "center", gap: 7 }}>
             <Activity size={14} /> أكثر الأعضاء نشاطاً
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {stats.topMembers.map((m, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <span style={{ fontSize: 11, color: "#6b7891", width: 18 }}>#{i + 1}</span>
-                <div style={{
-                  width: 32, height: 32, borderRadius: "50%",
-                  background: "rgba(201,169,110,0.12)", flexShrink: 0,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  color: "#C9A96E", fontWeight: 800, fontSize: 13,
-                }}>
-                  {(m.name || "?")[0]}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "#e8edf5", marginBottom: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {m.name}
+            {top_members.map((m, i) => {
+              const memberName = m.name || m.Name || "?";
+              const memberCompleted = m.tasksCompleted || m.TasksCompleted || m.CompletedTasks || m.completedTasks || 0;
+              
+              return (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <span style={{ fontSize: 11, color: "#6b7891", width: 18 }}>#{i + 1}</span>
+                  <div style={{
+                    width: 32, height: 32, borderRadius: "50%",
+                    background: "rgba(201,169,110,0.12)", flexShrink: 0,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    color: "#C9A96E", fontWeight: 800, fontSize: 13,
+                  }}>
+                    {memberName[0]}
                   </div>
-                  <div style={{ height: 3, background: "#080d16", borderRadius: 2 }}>
-                    <div style={{
-                      height: "100%", borderRadius: 2,
-                      background: "linear-gradient(90deg,#f0c98a,#C9A96E)",
-                      width: `${Math.min((m.tasksCompleted / (stats.doneTasks || 1)) * 100, 100)}%`,
-                    }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#e8edf5", marginBottom: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {memberName}
+                    </div>
+                    <div style={{ height: 3, background: "#080d16", borderRadius: 2 }}>
+                      <div style={{
+                        height: "100%", borderRadius: 2,
+                        background: "linear-gradient(90deg,#f0c98a,#C9A96E)",
+                        width: `${Math.min((memberCompleted / (completed_tasks || 1)) * 100, 100)}%`,
+                      }} />
+                    </div>
                   </div>
+                  <span style={{ fontSize: 12, color: "#C9A96E", fontWeight: 700, flexShrink: 0 }}>{memberCompleted}</span>
                 </div>
-                <span style={{ fontSize: 12, color: "#C9A96E", fontWeight: 700, flexShrink: 0 }}>{m.tasksCompleted}</span>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       )}
