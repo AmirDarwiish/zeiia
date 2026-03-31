@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { createPortal } from "react-dom"
 import { useNavigate, useParams } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -101,7 +102,23 @@ function useIsMobile(breakpoint = 640) {
 // ─────────────────────────────────────────────
 function TaskCard({ task, boards, onMove, onDelete, onClick }) {
   const [menu, setMenu] = useState(false)
+  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 })
   const p = PRIORITY_CFG[task.priority]
+
+  const handleOpenMenu = (e) => {
+    e.stopPropagation()
+    const rect = e.currentTarget.getBoundingClientRect()
+    
+    // Check if there is enough space below
+    const spaceBelow = window.innerHeight - rect.bottom
+    const topPos = spaceBelow < 200 ? rect.top - 150 : rect.bottom + 8
+
+    setMenuPos({
+      top: topPos,
+      left: rect.left,
+    })
+    setMenu(true)
+  }
 
   return (
     <motion.div
@@ -158,60 +175,76 @@ function TaskCard({ task, boards, onMove, onDelete, onClick }) {
 
         <div style={{ position: "relative" }} onClick={(e) => e.stopPropagation()}>
           <button
-            onClick={() => setMenu((v) => !v)}
+            onClick={handleOpenMenu}
             style={{ ...S.btnGhost, height: 26, padding: "0 7px", borderRadius: 6 }}
           >
             <MoreHorizontal size={13} />
           </button>
-          <AnimatePresence>
-            {menu && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.92 }}
-                style={{
-                  position: "absolute", bottom: 30, left: 0, zIndex: 50,
-                  background: "#131b2a", border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: 10, padding: 6, minWidth: 160,
-                  boxShadow: "0 8px 30px rgba(0,0,0,0.5)",
-                }}
-                onMouseLeave={() => setMenu(false)}
-              >
-                <div style={{ fontSize: 10, color: "#6b7891", padding: "4px 8px", fontWeight: 700 }}>نقل إلى</div>
-                {boards.filter((b) => {
-                    const taskCol = String(task.boardColumnId ?? task.boardId ?? '')
-                    return String(b.id) !== taskCol
-                  }).map((b) => (
-                  <button
-                    key={b.id}
-                    onClick={() => { onMove(task.id, b.id); setMenu(false) }}
+          
+          {createPortal(
+            <AnimatePresence>
+              {menu && (
+                <>
+                  <div
+                    style={{ position: "fixed", inset: 0, zIndex: 9998 }}
+                    onClick={(e) => { e.stopPropagation(); setMenu(false) }}
+                  />
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.92, y: -5 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.92, y: -5 }}
                     style={{
-                      display: "flex", alignItems: "center", gap: 8,
-                      width: "100%", padding: "7px 10px", borderRadius: 7,
-                      background: "transparent", border: "none",
-                      color: "#e8edf5", fontSize: 12, cursor: "pointer",
-                      fontFamily: "'Cairo',sans-serif", textAlign: "right",
+                      position: "fixed",
+                      top: menuPos.top,
+                      left: menuPos.left,
+                      zIndex: 9999,
+                      background: "#131b2a",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      borderRadius: 10,
+                      padding: 6,
+                      minWidth: 160,
+                      boxShadow: "0 8px 30px rgba(0,0,0,0.5)",
                     }}
                   >
-                    <div style={{ width: 8, height: 8, borderRadius: "50%", background: b.color || "#C9A96E" }} />
-                    {b.name}
-                  </button>
-                ))}
-                <div style={{ height: 1, background: "rgba(255,255,255,0.06)", margin: "4px 0" }} />
-                <button
-                  onClick={() => { onDelete(task.id); setMenu(false) }}
-                  style={{
-                    display: "flex", alignItems: "center", gap: 8,
-                    width: "100%", padding: "7px 10px", borderRadius: 7,
-                    background: "transparent", border: "none",
-                    color: "#f87171", fontSize: 12, cursor: "pointer",
-                    fontFamily: "'Cairo',sans-serif", textAlign: "right",
-                  }}
-                >
-                  <Trash2 size={12} /> حذف التاسك
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                    <div style={{ fontSize: 10, color: "#6b7891", padding: "4px 8px", fontWeight: 700 }}>نقل إلى</div>
+                    {boards.filter((b) => {
+                        const taskCol = String(task.boardColumnId ?? task.boardId ?? '')
+                        return String(b.id) !== taskCol
+                      }).map((b) => (
+                      <button
+                        key={b.id}
+                        onClick={() => { onMove(task.id, b.id); setMenu(false) }}
+                        style={{
+                          display: "flex", alignItems: "center", gap: 8,
+                          width: "100%", padding: "7px 10px", borderRadius: 7,
+                          background: "transparent", border: "none",
+                          color: "#e8edf5", fontSize: 12, cursor: "pointer",
+                          fontFamily: "'Cairo',sans-serif", textAlign: "right",
+                        }}
+                      >
+                        <div style={{ width: 8, height: 8, borderRadius: "50%", background: b.color || "#C9A96E" }} />
+                        {b.name}
+                      </button>
+                    ))}
+                    <div style={{ height: 1, background: "rgba(255,255,255,0.06)", margin: "4px 0" }} />
+                    <button
+                      onClick={() => { onDelete(task.id); setMenu(false) }}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 8,
+                        width: "100%", padding: "7px 10px", borderRadius: 7,
+                        background: "transparent", border: "none",
+                        color: "#f87171", fontSize: 12, cursor: "pointer",
+                        fontFamily: "'Cairo',sans-serif", textAlign: "right",
+                      }}
+                    >
+                      <Trash2 size={12} /> حذف التاسك
+                    </button>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>,
+            document.body
+          )}
         </div>
       </div>
     </motion.div>
