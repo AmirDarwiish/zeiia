@@ -1,50 +1,58 @@
-import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { LangProvider, useLang } from './context/LangContext';
-import ScrollToTop from './components/ScrollToTop';
+/**
+ * src/App.jsx — ZEIIA Project
+ * ─────────────────────────────────────────────────────────
+ * الراوتس الكاملة:
+ *   /dashboard/login          → public
+ *   /dashboard/session-expired → public
+ *   /dashboard                → PrivateRoute
+ *   /dashboard/users          → PrivateRoute
+ *   /dashboard/reports/activity → PrivateRoute
+ *   /dashboard/projects       → PrivateRoute
+ *   /dashboard/projects/:id   → PrivateRoute
+ *   /dashboard/*              → 404
+ *   /                         → public (مع Navbar+Footer+Intro)
+ *   /services                 → public
+ *   /why-us                   → public
+ *   /contact                  → public
+ *   /*                        → 404
+ * ─────────────────────────────────────────────────────────
+ */
 
-// Layout
-import Navbar       from './Navbar';
-import Footer       from './components/Footer';
-import IntroScreen  from './components/IntroScreen';
+import { useState, useEffect } from 'react'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { LangProvider, useLang } from './context/LangContext'
+import ScrollToTop from './components/ScrollToTop'
 
-// Pages
-import HomePage     from './pages/HomePage';
-import ServicesPage from './pages/ServicesPage';
-import WhyUsPage    from './pages/WhyUsPage';
-import ContactPage  from './pages/ContactPage';
-import DashboardLogin from './pages/dashboard/login'
-import Dashboard      from './pages/dashboard/index'
-import UsersPage      from './pages/dashboard/users'   
+// ── Layout ─────────────────────────────────────────────────
+import Navbar      from './Navbar'
+import Footer      from './components/Footer'
+import IntroScreen from './components/IntroScreen'
+
+// ── Public Pages ────────────────────────────────────────────
+import HomePage     from './pages/HomePage'
+import ServicesPage from './pages/ServicesPage'
+import WhyUsPage    from './pages/WhyUsPage'
+import ContactPage  from './pages/ContactPage'
+
+// ── Dashboard Pages ─────────────────────────────────────────
+import DashboardLogin     from './pages/dashboard/login'
+import Dashboard          from './pages/dashboard/index'
+import UsersPage          from './pages/dashboard/users'
 import UserActivityReport from './pages/dashboard/Useractivityreport'
-import ProjectsList   from './pages/projects/ProjectsList';   
-import ProjectDetails from './pages/projects/ProjectDetails'; 
 
-import './index.css';
+// ── Projects Pages ──────────────────────────────────────────
+import ProjectsList   from './pages/projects/ProjectsList'
+import ProjectDetails from './pages/projects/ProjectDetails'
 
-/* ─────────────────────────────────────────────────────────────
-   Layout wrapper — Navbar + page content + Footer
-───────────────────────────────────────────────────────────── */
-const Layout = ({ children }) => {
-  const { isRtl } = useLang();
-  return (
-    <div
-      dir={isRtl ? 'rtl' : 'ltr'}
-      style={{ minHeight: '100vh', background: '#fff', color: '#0f172a', overflowX: 'hidden' }}
-    >
-      <Navbar />
-      <main>{children}</main>
-      <Footer />
-      <WhatsAppBtn />
-    </div>
-  );
-};
+// ── Route Guards & Error Pages ──────────────────────────────
+import { PrivateRoute, NotFound, SessionExpired } from './routes/guards'
 
-/* ─────────────────────────────────────────────────────────────
-   WhatsApp floating button
-───────────────────────────────────────────────────────────── */
+import './index.css'
+import './styles/dashboard.css'
+
+/* ── WhatsApp Floating Button ──────────────────────────────── */
 const WhatsAppBtn = () => {
-  const { isRtl } = useLang();
+  const { isRtl } = useLang()
   return (
     <a
       href="https://wa.me/201207715484"
@@ -57,66 +65,102 @@ const WhatsAppBtn = () => {
         boxShadow: '0 8px 24px rgba(37,211,102,.4)', transition: 'transform .2s, box-shadow .2s',
         textDecoration: 'none',
       }}
-      onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(37,211,102,.5)'; }}
-      onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)';   e.currentTarget.style.boxShadow = '0 8px 24px rgba(37,211,102,.4)'; }}
+      onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(37,211,102,.5)' }}
+      onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)';   e.currentTarget.style.boxShadow = '0 8px 24px rgba(37,211,102,.4)' }}
     >
       <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
         <path d="M14 2C7.373 2 2 7.373 2 14c0 2.15.57 4.17 1.57 5.91L2 26l6.26-1.54A11.94 11.94 0 0014 26c6.627 0 12-5.373 12-12S20.627 2 14 2z" fill="white"/>
         <path d="M19.5 16.9c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.47-.89-.79-1.49-1.76-1.66-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.61-.92-2.2-.24-.58-.49-.5-.67-.51-.17-.01-.37-.01-.57-.01-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.87 1.22 3.07.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.09 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35z" fill="#25d366"/>
       </svg>
     </a>
-  );
-};
+  )
+}
 
-/* ─────────────────────────────────────────────────────────────
-   App routes
-───────────────────────────────────────────────────────────── */
-const AppRoutes = () => {
-  const [showIntro,  setShowIntro]  = useState(true);
-  const [introLeave, setIntroLeave] = useState(false);
+/* ── Public Layout ─────────────────────────────────────────── */
+const PublicLayout = ({ children }) => {
+  const { isRtl } = useLang()
+  return (
+    <div
+      dir={isRtl ? 'rtl' : 'ltr'}
+      style={{ minHeight: '100vh', background: '#fff', color: '#0f172a', overflowX: 'hidden' }}
+    >
+      <Navbar />
+      <main>{children}</main>
+      <Footer />
+      <WhatsAppBtn />
+    </div>
+  )
+}
+
+/* ── Public Routes (مع Intro Animation) ───────────────────── */
+const PublicRoutes = () => {
+  const [showIntro,  setShowIntro]  = useState(true)
+  const [introLeave, setIntroLeave] = useState(false)
 
   useEffect(() => {
-    const t1 = setTimeout(() => setIntroLeave(true),  2800);
-    const t2 = setTimeout(() => setShowIntro(false),  4400);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
-  }, []);
+    const t1 = setTimeout(() => setIntroLeave(true),  2800)
+    const t2 = setTimeout(() => setShowIntro(false),  4400)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
+  }, [])
 
   return (
     <>
       {showIntro && <IntroScreen leaving={introLeave} />}
-      <Layout>
+      <PublicLayout>
         <Routes>
           <Route path="/"         element={<HomePage />}    />
           <Route path="/services" element={<ServicesPage />} />
           <Route path="/why-us"   element={<WhyUsPage />}   />
-          <Route path="/contact"  element={<ContactPage />} />
+          <Route path="/contact"  element={<ContactPage />}  />
+          <Route path="*"         element={<NotFound />}     />
         </Routes>
-      </Layout>
+      </PublicLayout>
     </>
-  );
-};
+  )
+}
 
-/* ─────────────────────────────────────────────────────────────
-   Root
-───────────────────────────────────────────────────────────── */
+/* ── Root App ──────────────────────────────────────────────── */
 const App = () => (
   <Router>
     <ScrollToTop />
     <LangProvider>
       <Routes>
-        {/* الداشبورد — من غير Navbar/Footer */}
-        <Route path="/dashboard/login" element={<DashboardLogin />} />
-        <Route path="/dashboard"       element={<Dashboard />} />
-        <Route path="/dashboard/users" element={<UsersPage />} />  
-        <Route path="/dashboard/reports/activity" element={<UserActivityReport />} />
-        <Route path="/dashboard/projects" element={<ProjectsList />} />
-        <Route path="/dashboard/projects/:id" element={<ProjectDetails />} /> 
 
-        {/* باقي الموقع — مع Navbar/Footer */}
-        <Route path="/*" element={<AppRoutes />} />
+        {/* ── Dashboard — Public (no auth needed) ── */}
+        <Route path="/dashboard/login"           element={<DashboardLogin />} />
+        <Route path="/dashboard/session-expired" element={<SessionExpired />} />
+
+        {/* ── Dashboard — Protected (PrivateRoute) ── */}
+        <Route
+          path="/dashboard"
+          element={<PrivateRoute><Dashboard /></PrivateRoute>}
+        />
+        <Route
+          path="/dashboard/users"
+          element={<PrivateRoute><UsersPage /></PrivateRoute>}
+        />
+        <Route
+          path="/dashboard/reports/activity"
+          element={<PrivateRoute><UserActivityReport /></PrivateRoute>}
+        />
+        <Route
+          path="/dashboard/projects"
+          element={<PrivateRoute><ProjectsList /></PrivateRoute>}
+        />
+        <Route
+          path="/dashboard/projects/:id"
+          element={<PrivateRoute><ProjectDetails /></PrivateRoute>}
+        />
+
+        {/* ── أي رابط /dashboard تاني → 404 ── */}
+        <Route path="/dashboard/*" element={<NotFound />} />
+
+        {/* ── الموقع العام ── */}
+        <Route path="/*" element={<PublicRoutes />} />
+
       </Routes>
     </LangProvider>
   </Router>
-);
+)
 
-export default App;
+export default App
