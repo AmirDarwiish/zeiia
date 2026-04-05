@@ -51,7 +51,7 @@ const NAV = [
     section: 'الرئيسية',
     items: [
       { path: '/dashboard',         label: 'الليدز',         Icon: IcoLeads    },
-      { path: '/dashboard/projects',label: 'البروجكتات',    Icon: IcoProjects },
+      { path: '/dashboard/projects',label: 'المشاريع',    Icon: IcoProjects },
     ],
   },
   {
