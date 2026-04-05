@@ -14,7 +14,8 @@ import {
   updateProjectStatus,
   deleteProject,
 } from "../../services/projectService"
-import '../../styles/dashboard.css'
+import DashboardLayout from "../dashboard/DashboardLayout"
+import "../../styles/dashboard.css"
 
 // ─────────────────────────────────────────────
 // Constants
@@ -45,56 +46,56 @@ const normProjectStatus = (v) => typeof v === "number" ? PROJECT_STATUS_INT_MAP[
 // ─────────────────────────────────────────────
 const S = {
   wrap: {
-    background: "#080d16",
+    background: "var(--bg-base)",
     minHeight: "100vh",
     padding: "32px 28px",
     direction: "rtl",
-    color: "#e8edf5",
+    color: "var(--text)",
     fontFamily: "'Cairo', sans-serif",
     boxSizing: "border-box",
   },
   card: {
-    background: "#0d1420",
+    background: "var(--bg-card)",
     border: "1px solid rgba(255,255,255,0.06)",
     borderRadius: 14,
   },
   input: {
     width: "100%", boxSizing: "border-box", height: 42,
-    background: "#080d16", border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: 10, color: "#e8edf5", fontSize: 13,
+    background: "var(--bg-base)", border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: 10, color: "var(--text)", fontSize: 13,
     padding: "0 14px", fontFamily: "'Cairo', sans-serif",
     outline: "none", transition: "border-color .2s",
   },
   textarea: {
     width: "100%", boxSizing: "border-box",
-    background: "#080d16", border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: 10, color: "#e8edf5", fontSize: 13,
+    background: "var(--bg-base)", border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: 10, color: "var(--text)", fontSize: 13,
     padding: "10px 14px", fontFamily: "'Cairo', sans-serif",
     outline: "none", resize: "vertical", minHeight: 80,
     transition: "border-color .2s",
   },
   select: {
     width: "100%", boxSizing: "border-box", height: 42,
-    background: "#080d16", border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: 10, color: "#e8edf5", fontSize: 13,
+    background: "var(--bg-base)", border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: 10, color: "var(--text)", fontSize: 13,
     padding: "0 14px", fontFamily: "'Cairo', sans-serif",
     outline: "none", cursor: "pointer", appearance: "none",
   },
   lbl: {
-    fontSize: 11, color: "#6b7891", fontWeight: 700,
+    fontSize: 11, color: "var(--text-muted)", fontWeight: 700,
     display: "block", marginBottom: 6, letterSpacing: "0.5px",
   },
   btnGold: {
     height: 42, padding: "0 22px", borderRadius: 10, border: "none",
     background: "linear-gradient(135deg, #d4a855, #C9A96E)",
-    color: "#080d16", fontSize: 13, fontWeight: 800, cursor: "pointer",
+    color: "var(--bg-base)", fontSize: 13, fontWeight: 800, cursor: "pointer",
     fontFamily: "'Cairo', sans-serif", display: "flex", alignItems: "center",
     gap: 8, whiteSpace: "nowrap", transition: "opacity .2s, transform .1s",
   },
   btnGhost: {
     height: 38, padding: "0 16px", borderRadius: 9,
     border: "1px solid rgba(255,255,255,0.08)", background: "transparent",
-    color: "#6b7891", fontSize: 12, cursor: "pointer",
+    color: "var(--text-muted)", fontSize: 12, cursor: "pointer",
     fontFamily: "'Cairo', sans-serif", display: "flex", alignItems: "center",
     gap: 6, transition: "border-color .2s, color .2s",
   },
@@ -181,7 +182,7 @@ function ProjectCard({ project, onOpen, onDelete, onStatusChange }) {
         style={{ ...S.card, padding: "20px", cursor: "pointer", position: "relative", overflow: "hidden" }}
         onClick={() => onOpen(project.id)}
         onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(201,169,110,0.25)" }}
-        onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)" }}
+        onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)" }}
       >
         {/* Top accent bar */}
         <div style={{
@@ -202,12 +203,12 @@ function ProjectCard({ project, onOpen, onDelete, onStatusChange }) {
             </div>
             <div style={{ minWidth: 0 }}>
               <div style={{
-                fontSize: 15, fontWeight: 800, color: "#e8edf5",
+                fontSize: 15, fontWeight: 800, color: "var(--text)",
                 whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
               }}>
                 {project.name || project.title}
               </div>
-              <div style={{ fontSize: 11, color: "#6b7891", marginTop: 2 }}>#{project.id}</div>
+              <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>#{project.id}</div>
             </div>
           </div>
 
@@ -226,7 +227,7 @@ function ProjectCard({ project, onOpen, onDelete, onStatusChange }) {
         {/* Description */}
         {project.description && (
           <p style={{
-            fontSize: 12, color: "#6b7891", lineHeight: 1.7, marginBottom: 16,
+            fontSize: 12, color: "var(--text-muted)", lineHeight: 1.7, marginBottom: 16,
             overflow: "hidden", display: "-webkit-box",
             WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
           }}>
@@ -257,10 +258,10 @@ function ProjectCard({ project, onOpen, onDelete, onStatusChange }) {
         {/* Progress */}
         <div style={{ marginBottom: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-            <span style={{ fontSize: 11, color: "#6b7891", fontWeight: 600 }}>التقدم</span>
+            <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600 }}>التقدم</span>
             <span style={{ fontSize: 11, color: "#C9A96E", fontWeight: 800 }}>{progress}%</span>
           </div>
-          <div style={{ height: 5, background: "#080d16", borderRadius: 3, overflow: "hidden" }}>
+          <div style={{ height: 5, background: "var(--bg-base)", borderRadius: 3, overflow: "hidden" }}>
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
@@ -282,13 +283,13 @@ function ProjectCard({ project, onOpen, onDelete, onStatusChange }) {
           paddingTop: 14, borderTop: "1px solid rgba(255,255,255,0.05)",
         }}>
           <div style={{ display: "flex", gap: 16 }}>
-            <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "#6b7891" }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "var(--text-muted)" }}>
               <LayoutGrid size={13} color="#C9A96E" />
-              <span style={{ color: "#e8edf5", fontWeight: 700 }}>{tasksTotal}</span> تاسك
+              <span style={{ color: "var(--text)", fontWeight: 700 }}>{tasksTotal}</span> تاسك
             </span>
-            <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "#6b7891" }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "var(--text-muted)" }}>
               <Users size={13} color="#6ea8fe" />
-              <span style={{ color: "#e8edf5", fontWeight: 700 }}>{membersCount}</span> عضو
+              <span style={{ color: "var(--text)", fontWeight: 700 }}>{membersCount}</span> عضو
             </span>
           </div>
           <ChevronRight size={16} color="#C9A96E" style={{ transform: "rotate(180deg)" }} />
@@ -313,7 +314,7 @@ function ProjectCard({ project, onOpen, onDelete, onStatusChange }) {
             <cfg.Icon size={13} color={cfg.color} /> {cfg.label}
           </button>
         ))}
-        <div style={{ height: 1, background: "rgba(255,255,255,0.06)", margin: "6px 0" }} />
+        <div style={{ height: 1, background: "var(--border)", margin: "6px 0" }} />
         <button
           onClick={() => { onDelete(project.id); setMenuOpen(false) }}
           style={{
@@ -383,10 +384,10 @@ function CreateModal({ onClose, onCreate }) {
           borderRadius: "14px 14px 0 0",
         }} />
 
-        <div style={{ fontSize: 18, fontWeight: 900, color: "#e8edf5", marginBottom: 4 }}>
+        <div style={{ fontSize: 18, fontWeight: 900, color: "var(--text)", marginBottom: 4 }}>
           إنشاء بروجكت جديد
         </div>
-        <div style={{ fontSize: 12, color: "#6b7891", marginBottom: 24 }}>
+        <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 24 }}>
           سيتم إنشاء 4 كولومنات افتراضية تلقائياً
         </div>
 
@@ -399,7 +400,7 @@ function CreateModal({ onClose, onCreate }) {
               value={form.name}
               onChange={(e) => set("name", e.target.value)}
               onFocus={(e) => (e.target.style.borderColor = "rgba(201,169,110,0.5)")}
-              onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
+              onBlur={(e) => (e.target.style.borderColor = "var(--border-md)")}
               onKeyDown={(e) => e.key === "Enter" && submit()}
               autoFocus
             />
@@ -412,7 +413,7 @@ function CreateModal({ onClose, onCreate }) {
               value={form.description}
               onChange={(e) => set("description", e.target.value)}
               onFocus={(e) => (e.target.style.borderColor = "rgba(201,169,110,0.5)")}
-              onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
+              onBlur={(e) => (e.target.style.borderColor = "var(--border-md)")}
             />
           </div>
           <div>
@@ -507,7 +508,8 @@ export default function ProjectsList() {
   const onHold = projects.filter((p) => normProjectStatus(p.status) === "OnHold").length
 
   return (
-    <div style={S.wrap}>
+    <DashboardLayout title="إدارة البروجكتات" breadcrumb="البروجكتات">
+    <div style={{ ...S.wrap, padding: '24px' }}>
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         .pm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
@@ -516,20 +518,8 @@ export default function ProjectsList() {
         @media (max-width: 600px) { .stat-grid { grid-template-columns: repeat(2,1fr); } .pm-grid { grid-template-columns: 1fr; } }
       `}</style>
 
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }}
-        style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 14, marginBottom: 32 }}
-      >
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-            <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#C9A96E" }} />
-            <span style={{ fontSize: 11, fontWeight: 700, color: "#C9A96E", letterSpacing: 2 }}>نظام زيا (ZEIIA)</span>
-          </div>
-          <h1 style={{ fontSize: 28, fontWeight: 900, color: "#e8edf5", margin: 0 }}>إدارة البروجكتات</h1>
-          <div style={{ width: 40, height: 3, background: "#C9A96E", borderRadius: 3, marginTop: 8 }} />
-          <p style={{ fontSize: 12, color: "#6b7891", marginTop: 8 }}>تتبع وإدارة جميع مشاريعك في مكان واحد</p>
-        </div>
+      {/* Header Actions */}
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 20 }}>
         <button
           onClick={() => setShowCreate(true)}
           style={S.btnGold}
@@ -538,7 +528,7 @@ export default function ProjectsList() {
         >
           <Plus size={16} /> إنشاء بروجكت
         </button>
-      </motion.div>
+      </div>
 
       {/* Stats */}
       <motion.div className="stat-grid" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
@@ -556,8 +546,8 @@ export default function ProjectsList() {
             }}>
               {s.icon}
             </div>
-            <div style={{ fontSize: 26, fontWeight: 900, color: "#e8edf5", lineHeight: 1 }}>{s.value}</div>
-            <div style={{ fontSize: 11, color: "#6b7891", fontWeight: 700, marginTop: 5 }}>{s.label}</div>
+            <div style={{ fontSize: 26, fontWeight: 900, color: "var(--text)", lineHeight: 1 }}>{s.value}</div>
+            <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700, marginTop: 5 }}>{s.label}</div>
           </div>
         ))}
       </motion.div>
@@ -571,14 +561,14 @@ export default function ProjectsList() {
         }}
       >
         <div style={{ flex: "1 1 220px", position: "relative" }}>
-          <Search size={14} color="#6b7891" style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)" }} />
+          <Search size={14} color="var(--text-muted)" style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)" }} />
           <input
             style={{ ...S.input, paddingRight: 34 }}
             placeholder="ابحث باسم البروجكت..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onFocus={(e) => (e.target.style.borderColor = "rgba(201,169,110,0.5)")}
-            onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
+            onBlur={(e) => (e.target.style.borderColor = "var(--border-md)")}
           />
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -587,8 +577,8 @@ export default function ProjectsList() {
             style={{
               ...S.btnGhost, height: 38,
               background: !filterStatus ? "rgba(201,169,110,.12)" : "transparent",
-              color: !filterStatus ? "#C9A96E" : "#6b7891",
-              borderColor: !filterStatus ? "rgba(201,169,110,.3)" : "rgba(255,255,255,0.08)",
+              color: !filterStatus ? "#C9A96E" : "var(--text-muted)",
+              borderColor: !filterStatus ? "rgba(201,169,110,.3)" : "var(--border-md)",
             }}
           >
             الكل ({total})
@@ -603,8 +593,8 @@ export default function ProjectsList() {
                 style={{
                   ...S.btnGhost, height: 38,
                   background: filterStatus === k ? `${v.color}15` : "transparent",
-                  color: filterStatus === k ? v.color : "#6b7891",
-                  borderColor: filterStatus === k ? `${v.color}40` : "rgba(255,255,255,0.08)",
+                  color: filterStatus === k ? v.color : "var(--text-muted)",
+                  borderColor: filterStatus === k ? `${v.color}40` : "var(--border-md)",
                 }}
               >
                 {v.label} ({count})
@@ -637,16 +627,16 @@ export default function ProjectsList() {
             <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ textAlign: "center", padding: "80px 20px" }}>
               <div style={{
                 width: 60, height: 60, borderRadius: 16,
-                background: "#0d1420", border: "1px solid rgba(201,169,110,0.15)",
+                background: "var(--bg-card)", border: "1px solid rgba(201,169,110,0.15)",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 margin: "0 auto 20px",
               }}>
                 <FolderKanban size={26} color="#C9A96E" />
               </div>
-              <div style={{ fontSize: 17, fontWeight: 900, color: "#e8edf5", marginBottom: 8 }}>
+              <div style={{ fontSize: 17, fontWeight: 900, color: "var(--text)", marginBottom: 8 }}>
                 {search || filterStatus ? "لا توجد نتائج مطابقة" : "لا توجد بروجكتات بعد"}
               </div>
-              <div style={{ fontSize: 13, color: "#6b7891", marginBottom: 24 }}>
+              <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 24 }}>
                 {search || filterStatus ? "جرّب تغيير معايير البحث" : "ابدأ بإنشاء أول بروجكت لك الآن"}
               </div>
               {!search && !filterStatus && (
@@ -682,5 +672,6 @@ export default function ProjectsList() {
         )}
       </AnimatePresence>
     </div>
+    </DashboardLayout>
   )
 }
