@@ -777,7 +777,6 @@ body { font-family: 'Cairo', sans-serif; }
 /* الـ kanban-scroll container لازم direction: ltr عشان الـ columns
    تترتب من اليسار لليمين زي المعتاد في الـ kanban boards */
 .kanban-scroll {
-  direction: ltr !important;
   display: flex;
   gap: 16px;
   overflow-x: auto;
