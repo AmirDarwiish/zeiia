@@ -1,9 +1,4 @@
-/**
- * src/App.jsx — ZEIIA Project
- * أُضيف: ThemeProvider + PrivateRoute + NotFound + SessionExpired
- */
-
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { LangProvider, useLang }  from './context/LangContext'
 import { ThemeProvider }          from './context/ThemeContext'
@@ -14,21 +9,19 @@ import Navbar      from './Navbar'
 import Footer      from './components/Footer'
 import IntroScreen from './components/IntroScreen'
 
-// ── Public Pages ────────────────────────────────────────────
+// ── Public Pages — بتتحمل فوراً لأنها فوق الـ fold
 import HomePage     from './pages/HomePage'
 import ServicesPage from './pages/ServicesPage'
 import WhyUsPage    from './pages/WhyUsPage'
 import ContactPage  from './pages/ContactPage'
 
-// ── Dashboard Pages ─────────────────────────────────────────
-import DashboardLogin     from './pages/dashboard/login'
-import Dashboard          from './pages/dashboard/index'
-import UsersPage          from './pages/dashboard/users'
-import UserActivityReport from './pages/dashboard/Useractivityreport'
-
-// ── Projects Pages ──────────────────────────────────────────
-import ProjectsList   from './pages/projects/ProjectsList'
-import ProjectDetails from './pages/projects/ProjectDetails'
+// ── Dashboard Pages — lazy لأن اليوزر العادي مش هيدخلها
+const DashboardLogin     = lazy(() => import('./pages/dashboard/login'))
+const Dashboard          = lazy(() => import('./pages/dashboard/index'))
+const UsersPage          = lazy(() => import('./pages/dashboard/users'))
+const UserActivityReport = lazy(() => import('./pages/dashboard/Useractivityreport'))
+const ProjectsList       = lazy(() => import('./pages/projects/ProjectsList'))
+const ProjectDetails     = lazy(() => import('./pages/projects/ProjectDetails'))
 
 import './index.css'
 
@@ -40,6 +33,22 @@ function PrivateRoute({ children }) {
   if (!isLoggedIn()) return <Navigate to="/dashboard/login" replace />
   return children
 }
+
+/* ── Dashboard Loader ──────────────────────────────────────── */
+const DashboardLoader = () => (
+  <div style={{
+    minHeight: '100vh', background: '#080d16',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+  }}>
+    <div style={{
+      width: 40, height: 40, borderRadius: '50%',
+      border: '3px solid rgba(201,169,110,0.2)',
+      borderTopColor: '#C9A96E',
+      animation: 'spin 0.8s linear infinite',
+    }} />
+    <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+  </div>
+)
 
 /* ── 404 ───────────────────────────────────────────────────── */
 function NotFound() {
@@ -84,6 +93,7 @@ const WhatsAppBtn = () => {
   const { isRtl } = useLang()
   return (
     <a href="https://wa.me/201207715484" target="_blank" rel="noopener noreferrer"
+      aria-label="تواصل معنا على واتساب"
       style={{ position:'fixed', bottom:32, left:isRtl?32:'auto', right:isRtl?'auto':32, zIndex:999, width:56, height:56, borderRadius:'50%', background:'#25d366', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 8px 24px rgba(37,211,102,.4)', transition:'transform .2s', textDecoration:'none' }}
       onMouseEnter={e => e.currentTarget.style.transform='scale(1.1)'}
       onMouseLeave={e => e.currentTarget.style.transform='scale(1)'}
@@ -123,9 +133,9 @@ const PublicRoutes = () => {
       {showIntro && <IntroScreen leaving={introLeave} />}
       <PublicLayout>
         <Routes>
-          <Route path="/"         element={<HomePage />}    />
+          <Route path="/"         element={<HomePage />}     />
           <Route path="/services" element={<ServicesPage />} />
-          <Route path="/why-us"   element={<WhyUsPage />}   />
+          <Route path="/why-us"   element={<WhyUsPage />}    />
           <Route path="/contact"  element={<ContactPage />}  />
           <Route path="*"         element={<NotFound />}     />
         </Routes>
@@ -141,19 +151,29 @@ const App = () => (
       <Router>
         <ScrollToTop />
         <Routes>
-          {/* Public dashboard auth routes */}
-          <Route path="/dashboard/login"           element={<DashboardLogin />} />
-          <Route path="/dashboard/session-expired" element={<SessionExpired />} />
-
-          {/* Protected dashboard routes */}
-          <Route path="/dashboard"                    element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-          <Route path="/dashboard/users"              element={<PrivateRoute><UsersPage /></PrivateRoute>} />
-          <Route path="/dashboard/reports/activity"   element={<PrivateRoute><UserActivityReport /></PrivateRoute>} />
-          <Route path="/dashboard/projects"           element={<PrivateRoute><ProjectsList /></PrivateRoute>} />
-          <Route path="/dashboard/projects/:id"       element={<PrivateRoute><ProjectDetails /></PrivateRoute>} />
-
-          {/* Unknown dashboard routes → 404 */}
-          <Route path="/dashboard/*"                  element={<NotFound />} />
+          {/* Dashboard routes — كلها lazy */}
+          <Route path="/dashboard/login"
+            element={<Suspense fallback={<DashboardLoader />}><DashboardLogin /></Suspense>}
+          />
+          <Route path="/dashboard/session-expired"
+            element={<Suspense fallback={<DashboardLoader />}><SessionExpired /></Suspense>}
+          />
+          <Route path="/dashboard"
+            element={<PrivateRoute><Suspense fallback={<DashboardLoader />}><Dashboard /></Suspense></PrivateRoute>}
+          />
+          <Route path="/dashboard/users"
+            element={<PrivateRoute><Suspense fallback={<DashboardLoader />}><UsersPage /></Suspense></PrivateRoute>}
+          />
+          <Route path="/dashboard/reports/activity"
+            element={<PrivateRoute><Suspense fallback={<DashboardLoader />}><UserActivityReport /></Suspense></PrivateRoute>}
+          />
+          <Route path="/dashboard/projects"
+            element={<PrivateRoute><Suspense fallback={<DashboardLoader />}><ProjectsList /></Suspense></PrivateRoute>}
+          />
+          <Route path="/dashboard/projects/:id"
+            element={<PrivateRoute><Suspense fallback={<DashboardLoader />}><ProjectDetails /></Suspense></PrivateRoute>}
+          />
+          <Route path="/dashboard/*" element={<NotFound />} />
 
           {/* Public website */}
           <Route path="/*" element={<PublicRoutes />} />

@@ -31,7 +31,8 @@ const Navbar = () => {
       }}>
         {/* Logo */}
         <Link to="/" style={{ display: 'flex', alignItems: 'center' }}>
-          <img src="/logo-dark.PNG" alt="zeiia logo" style={{ width: 120, height: 120, objectFit: 'contain' }} />
+          <img src="https://res.cloudinary.com/dsh6m0lko/image/upload/v1775900373/logo-dark_terdk8.png" 
+          alt="zeiia logo" style={{ width: 120, height: 120, objectFit: 'contain' }} />
         </Link>
 
         {/* Desktop links */}
